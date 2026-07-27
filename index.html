@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TradeReady AI — Export Documentation & Customs Readiness Assistant</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin:0;">
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect } = React;
+
+/* ============================================================
+   Lightweight self-contained icon set (stroke-style, lucide-inspired)
+   Avoids any external icon-library dependency for a fully standalone file
+   ============================================================ */
+function Icon({ size = 16, color, style, className, children }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style} className={className}>
+      {children}
+    </svg>
+  );
+}
+const AlertTriangle = (p) => <Icon {...p}><path d="M12 2 2 20h20L12 2z" /><line x1="12" y1="9" x2="12" y2="14" /><line x1="12" y1="17" x2="12" y2="17.01" /></Icon>;
+const CheckCircle2 = (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" /></Icon>;
+const XCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></Icon>;
+const Clock = (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></Icon>;
+const Globe2 = (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18" /></Icon>;
+const PlusCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></Icon>;
+const Search = (p) => <Icon {...p}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /></Icon>;
+const RotateCcw = (p) => <Icon {...p}><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></Icon>;
+const ChevronLeft = (p) => <Icon {...p}><path d="M15 18l-6-6 6-6" /></Icon>;
+const ClipboardList = (p) => <Icon {...p}><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 3h6v3H9z" /><line x1="8" y1="11" x2="16" y2="11" /><line x1="8" y1="15" x2="16" y2="15" /></Icon>;
+const ScrollText = (p) => <Icon {...p}><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" /><path d="M15 3v4h4" /><line x1="8" y1="12" x2="14" y2="12" /><line x1="8" y1="16" x2="14" y2="16" /></Icon>;
+const Languages = (p) => <Icon {...p}><path d="M4 6h9M8 4v2c0 4-2 7-5 8" /><path d="M6 12c1.5 1 3 1.5 5 1.5" /><path d="M13 21l4-9 4 9" /><path d="M14.5 18h5" /></Icon>;
+const Gauge = (p) => <Icon {...p}><path d="M4 15a8 8 0 1 1 16 0" /><line x1="12" y1="15" x2="15" y2="10" /><line x1="12" y1="15" x2="12" y2="15.01" /></Icon>;
+const FileWarning = (p) => <Icon {...p}><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" /><path d="M14 3v4h4" /><line x1="11" y1="11" x2="11" y2="14" /><line x1="11" y1="16.5" x2="11" y2="16.51" /></Icon>;
+const Anchor = (p) => <Icon {...p}><circle cx="12" cy="5" r="2" /><line x1="12" y1="7" x2="12" y2="20" /><path d="M5 12a7 7 0 0 0 14 0" /><line x1="5" y1="12" x2="5" y2="15" /><line x1="19" y1="12" x2="19" y2="15" /></Icon>;
+const ThumbsUp = (p) => <Icon {...p}><path d="M7 11v9H4v-9h3z" /><path d="M7 11l3.5-7a2 2 0 0 1 2 2v3h5.5a2 2 0 0 1 2 2.4l-1.4 6A2 2 0 0 1 16.6 20H7" /></Icon>;
+const ThumbsDown = (p) => <Icon {...p}><path d="M17 13V4h3v9h-3z" /><path d="M17 13l-3.5 7a2 2 0 0 1-2-2v-3H6a2 2 0 0 1-2-2.4l1.4-6A2 2 0 0 1 7.4 4H17" /></Icon>;
+const Pencil = (p) => <Icon {...p}><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z" /><line x1="14" y1="6" x2="17" y2="9" /></Icon>;
+const Info = (p) => <Icon {...p}><circle cx="12" cy="12" r="9" /><line x1="12" y1="11" x2="12" y2="16" /><line x1="12" y1="8" x2="12" y2="8.01" /></Icon>;
+const Upload = (p) => <Icon {...p}><path d="M12 16V4" /><path d="M7 9l5-5 5 5" /><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></Icon>;
+const Loader2 = (p) => <Icon {...p}><path d="M12 3a9 9 0 1 0 9 9" /></Icon>;
+
+/* ============================================================
+   TradeReady AI — Export Documentation & Customs Readiness Assistant
+   Validation / scoring / decision logic (ported from tradeready_logic.js)
+   ============================================================ */
+
+const INCOTERM_EXPECTED_RESPONSIBILITY = {
+  EXW: "buyer_pays_freight", FCA: "buyer_pays_freight", FAS: "buyer_pays_freight", FOB: "buyer_pays_freight",
+  CFR: "seller_pays_freight_insurance", CPT: "seller_pays_freight_insurance", CIF: "seller_pays_freight_insurance",
+  CIP: "seller_pays_freight_insurance", DAP: "seller_pays_freight_insurance", DPU: "seller_pays_freight_insurance",
+  DDP: "seller_pays_freight_insurance",
+};
+
+function sumQty(items) { return (items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0); }
+function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function labelResponsibility(code) { return code === "buyer_pays_freight" ? "ผู้ซื้อรับผิดชอบค่าขนส่ง" : "ผู้ขายรับผิดชอบค่าขนส่ง/ประกันภัย"; }
+
+function checkQtyMismatch(s) {
+  const invQty = sumQty(s.invoice?.items), pkQty = sumQty(s.packingList?.items);
+  if (invQty !== pkQty) return {
+    tag: "qty_mismatch", severity: "high",
+    message: `จำนวนสินค้าใน Invoice (${invQty}) ไม่ตรงกับ Packing List (${pkQty})`,
+    reasoning: "เปรียบเทียบจำนวนรวมของสินค้าทุกรายการใน invoice กับ packing list",
+    suggestedFix: "ตรวจสอบว่ามีการแก้ไขจำนวนหลังตัดตู้แล้วหรือไม่ และแก้ไขให้ตัวเลขตรงกันทั้งสองเอกสาร",
+    responsibleParty: s.responsibleParty || "ยังไม่มอบหมายผู้รับผิดชอบ", estimatedDelayDays: 2,
+  };
+  return null;
+}
+function checkMissingCOO(s) {
+  const c = s.certificateOfOrigin;
+  if (c?.required && !c?.provided) return {
+    tag: "missing_coo", severity: "high",
+    message: "ขาดเอกสาร Certificate of Origin", reasoning: "certificateOfOrigin.required = true แต่ยังไม่ provided",
+    suggestedFix: "ยื่นขอ Certificate of Origin จากหน่วยงานที่เกี่ยวข้องก่อนปิดตู้",
+    responsibleParty: s.responsibleParty || "ยังไม่มอบหมายผู้รับผิดชอบ", estimatedDelayDays: 5,
+  };
+  return null;
+}
+function checkVagueDescription(s) {
+  const items = s.invoice?.items || [];
+  const vague = items.filter((i) => !i.hsCode);
+  if (vague.length) return {
+    tag: "vague_description", severity: "medium",
+    message: `คำอธิบายสินค้า "${vague[0].productNameEN}" กว้างเกินไป ระบุ HS code ไม่ได้`,
+    reasoning: "รายการสินค้านี้ไม่มี HS code ระบุไว้",
+    suggestedFix: "ระบุวัสดุ/ส่วนประกอบ/การใช้งานของสินค้าให้เจาะจงขึ้น",
+    responsibleParty: s.responsibleParty || "ยังไม่มอบหมายผู้รับผิดชอบ", estimatedDelayDays: 3,
+  };
+  return null;
+}
+function checkWeightError(s) {
+  const items = s.packingList?.items || [];
+  const bad = items.find((i) => i.grossWeightKg < i.netWeightKg);
+  if (bad) return {
+    tag: "weight_error", severity: "high",
+    message: `น้ำหนักรวม (${bad.grossWeightKg}kg) น้อยกว่าน้ำหนักสุทธิ (${bad.netWeightKg}kg)`,
+    reasoning: "Gross weight ต้อง ≥ Net weight เสมอ",
+    suggestedFix: "ตรวจสอบตัวเลขจากใบชั่งจริงอีกครั้ง อาจกรอกตัวเลขสลับกัน",
+    responsibleParty: s.responsibleParty || "ยังไม่มอบหมายผู้รับผิดชอบ", estimatedDelayDays: 2,
+  };
+  return null;
+}
+function checkIncotermConflict(s) {
+  const exp = INCOTERM_EXPECTED_RESPONSIBILITY[s.incoterm];
+  if (exp && s.costResponsibility && exp !== s.costResponsibility) return {
+    tag: "incoterm_conflict", severity: "medium",
+    message: `Incoterm "${s.incoterm}" ปกติควรให้ ${labelResponsibility(exp)} แต่ระบุว่า ${labelResponsibility(s.costResponsibility)}`,
+    reasoning: "เทียบภาระค่าใช้จ่ายที่กรอก กับหลักการทั่วไปของ Incoterm ที่เลือก",
+    suggestedFix: "ตรวจสอบกับคู่ค้าว่าจริงๆแล้วตกลงกันด้วย Incoterm ใด หรือแก้ไขภาระค่าใช้จ่ายให้ตรงกัน",
+    responsibleParty: s.responsibleParty || "ยังไม่มอบหมายผู้รับผิดชอบ", estimatedDelayDays: 1,
+  };
+  return null;
+}
+function checkMissingPermit(s) {
+  const p = s.permitsOrCertificates;
+  if (p?.required && !p?.provided) return {
+    tag: "missing_permit", severity: "medium",
+    message: `ขาดเอกสาร ${p.type || "ใบอนุญาต/ใบรับรองสินค้า"}`,
+    reasoning: "permitsOrCertificates.required = true แต่ยังไม่ provided",
+    suggestedFix: `ยื่นขอ ${p.type || "ใบอนุญาต/ใบรับรองสินค้า"} จากหน่วยงานที่เกี่ยวข้อง`,
+    responsibleParty: s.responsibleParty || "ยังไม่มอบหมายผู้รับผิดชอบ", estimatedDelayDays: 4,
+  };
+  return null;
+}
+
+function runAllChecks(s) {
+  return [checkQtyMismatch, checkMissingCOO, checkVagueDescription, checkWeightError, checkIncotermConflict, checkMissingPermit]
+    .map((fn) => fn(s)).filter(Boolean);
+}
+
+function calculateCompleteness(s) {
+  const req = [
+    !!s.po?.poNumber, !!s.invoice?.invoiceNo, (s.invoice?.items?.length || 0) > 0, (s.packingList?.items?.length || 0) > 0,
+    !!s.billOfLading?.number, s.certificateOfOrigin?.required ? !!s.certificateOfOrigin?.provided : true,
+    s.permitsOrCertificates?.required ? !!s.permitsOrCertificates?.provided : true, !!s.responsibleParty,
+  ];
+  return Math.round((req.filter(Boolean).length / req.length) * 100);
+}
+
+function calculateRisk(s) {
+  const findings = runAllChecks(s);
+  const w = { high: 25, medium: 15, low: 5 };
+  let score = findings.reduce((sum, f) => sum + (w[f.severity] || 10), 0);
+  if (s.scenarioType === "urgent") score += 15;
+  if (s.scenarioType === "incomplete") score += 10;
+  const days = daysBetween(s.createdAt, s.deadline);
+  if (days <= 3) score += 15; else if (days <= 7) score += 5;
+  score = Math.min(score, 100);
+  let level = "low"; if (score >= 60) level = "high"; else if (score >= 30) level = "medium";
+  return { score, level, findings, daysAvailable: days };
+}
+
+const HS_CATEGORY_TABLE = [
+  { keywords: ["dried", "durian", "mango", "banana", "mangosteen", "longan"], categoryTH: "ผลไม้แปรรูป/อบแห้ง", hsChapter: "08", sampleHsCode: "0813.40" },
+  { keywords: ["rice"], categoryTH: "ข้าวและธัญพืช", hsChapter: "10", sampleHsCode: "1006.30" },
+  { keywords: ["coffee"], categoryTH: "กาแฟ", hsChapter: "09", sampleHsCode: "0901.21" },
+  { keywords: ["tea"], categoryTH: "ชา", hsChapter: "09", sampleHsCode: "0902.20" },
+  { keywords: ["sauce", "paste", "curry"], categoryTH: "อาหารปรุงสำเร็จ/ซอส/น้ำพริก", hsChapter: "21", sampleHsCode: "2103.90" },
+  { keywords: ["cracker", "snack", "noodle", "roll"], categoryTH: "ขนม/ของทานเล่นแปรรูป", hsChapter: "19", sampleHsCode: "1905.90" },
+  { keywords: ["fish", "shrimp"], categoryTH: "อาหารทะเล/กะปิ", hsChapter: "16", sampleHsCode: "1605.40" },
+  { keywords: ["fruit", "canned"], categoryTH: "ผลไม้กระป๋อง/แปรรูป", hsChapter: "20", sampleHsCode: "2008.99" },
+  { keywords: ["honey"], categoryTH: "น้ำผึ้ง", hsChapter: "04", sampleHsCode: "0409.00" },
+  { keywords: ["oil"], categoryTH: "น้ำมันพืช", hsChapter: "15", sampleHsCode: "1513.11" },
+  { keywords: ["cotton", "fabric", "textile"], categoryTH: "สิ่งทอ/ผ้า", hsChapter: "52", sampleHsCode: "5208.11" },
+  { keywords: ["t-shirt", "garment", "shirt"], categoryTH: "เครื่องนุ่งห่ม", hsChapter: "61", sampleHsCode: "6109.10" },
+  { keywords: ["ceramic"], categoryTH: "เครื่องเซรามิก", hsChapter: "69", sampleHsCode: "6912.00" },
+  { keywords: ["rattan", "bag", "basket", "woven"], categoryTH: "เครื่องหวาย/จักสาน", hsChapter: "46", sampleHsCode: "4602.19" },
+  { keywords: ["wood", "furniture", "teak"], categoryTH: "เฟอร์นิเจอร์ไม้", hsChapter: "94", sampleHsCode: "9403.60" },
+  { keywords: ["soap"], categoryTH: "สบู่/เครื่องสำอาง", hsChapter: "34", sampleHsCode: "3401.11" },
+];
+
+function suggestHsCode(item) {
+  if (item.hsCode) return { status: "confirmed", hsCode: item.hsCode, candidates: [] };
+  const desc = `${item.productNameEN || ""} ${item.productNameTH || ""}`.toLowerCase();
+  const matches = HS_CATEGORY_TABLE.filter((r) => r.keywords.some((k) => desc.includes(k)));
+  if (!matches.length) return {
+    status: "need_more_info", candidates: [],
+    message: "ไม่พบคำที่จัดหมวดหมู่ได้ ต้องขอรายละเอียดสินค้าเพิ่มเติมก่อนแนะนำ HS code",
+  };
+  return {
+    status: "suggested",
+    candidates: matches.slice(0, 2).map((m) => ({ categoryTH: m.categoryTH, hsChapter: m.hsChapter, sampleHsCode: m.sampleHsCode })),
+    message: `แนะนำเบื้องต้น: เข้าข่ายหมวด "${matches[0].categoryTH}" (Chapter ${matches[0].hsChapter}) — ควรยืนยันกับผู้เชี่ยวชาญศุลกากรก่อนยื่นจริง`,
+  };
+}
+
+function getMissingDocumentsChecklist(s) {
+  const coo = s.certificateOfOrigin, permit = s.permitsOrCertificates;
+  return [
+    { docType: "Purchase Order", status: s.po?.poNumber ? "present" : "missing" },
+    { docType: "Commercial Invoice", status: s.invoice?.invoiceNo ? "present" : "missing" },
+    { docType: "Packing List", status: (s.packingList?.items?.length || 0) > 0 ? "present" : "missing" },
+    { docType: `${s.billOfLading?.type || "B/L"} Number`, status: s.billOfLading?.number ? "present" : "missing" },
+    { docType: "Certificate of Origin", status: !coo?.required ? "not_required" : coo?.provided ? "present" : "missing" },
+    { docType: permit?.type || "Permit / Product Certificate", status: !permit?.required ? "not_required" : permit?.provided ? "present" : "missing" },
+  ];
+}
+
+function generateDecisionAlternatives(s) {
+  const findings = runAllChecks(s);
+  const high = findings.filter((f) => f.severity === "high");
+  const allDelay = findings.length ? Math.max(...findings.map((f) => f.estimatedDelayDays)) : 0;
+  const highDelay = high.length ? Math.max(...high.map((f) => f.estimatedDelayDays)) : 0;
+  const { score, daysAvailable } = calculateRisk(s);
+
+  const alts = [
+    { id: "hold_fix_all", nameTH: "หยุดและแก้ไขเอกสารให้ครบก่อนส่ง", delayDays: allDelay,
+      extraCostUSD: findings.length * 120 + allDelay * 80, residualRiskScore: findings.length ? 5 : 0,
+      summary: "ปลอดภัยที่สุด ผ่านศุลกากรมั่นใจสุด แต่ใช้เวลาและมีค่าใช้จ่ายเพิ่มขึ้น" },
+    { id: "ship_as_is", nameTH: "ส่งตามกำหนดเดิม (รับความเสี่ยงเอง)", delayDays: 0, extraCostUSD: 0,
+      expectedPenaltyUSD: Math.round(score * 30), residualRiskScore: score,
+      summary: "เร็วที่สุด ไม่หน่วงเวลา แต่มีความเสี่ยงถูกกักตรวจหรือถูกปรับที่ศุลกากร" },
+    { id: "partial_fix_expedite", nameTH: "แก้เฉพาะจุดเสี่ยงสูงก่อน + เร่งเอกสาร", delayDays: highDelay,
+      extraCostUSD: high.length * 120 + 300, residualRiskScore: Math.max(0, score - high.length * 25),
+      summary: "จุดกึ่งกลาง แก้ปัญหาความเสี่ยงสูงก่อน ส่วนที่เหลือยอมรับไว้ก่อน มีค่าใช้จ่ายเร่งเอกสารเพิ่ม" },
+  ];
+
+  let recommendedId;
+  if (!findings.length) recommendedId = "ship_as_is";
+  else if (daysAvailable >= allDelay) recommendedId = "hold_fix_all";
+  else if (high.length > 0 && daysAvailable >= highDelay) recommendedId = "partial_fix_expedite";
+  else recommendedId = "ship_as_is";
+
+  return { alternatives: alts, recommendedId, daysAvailable };
+}
+
+function analyzeShipment(s) {
+  const findings = runAllChecks(s);
+  const completeness = calculateCompleteness(s);
+  const { score, level } = calculateRisk(s);
+  const delayDays = findings.length ? Math.max(...findings.map((f) => f.estimatedDelayDays)) : 0;
+  const missingDocumentsChecklist = getMissingDocumentsChecklist(s);
+  const hsCodeSuggestions = (s.invoice?.items || []).map((item) => ({ productNameTH: item.productNameTH, productNameEN: item.productNameEN, ...suggestHsCode(item) }));
+  const decision = generateDecisionAlternatives(s);
+  return {
+    completeness, riskScore: score, riskLevel: level, customsReadinessScore: Math.max(0, 100 - score),
+    estimatedDelayDays: delayDays, findings, missingDocumentsChecklist, hsCodeSuggestions,
+    decisionAlternatives: decision.alternatives, recommendedAlternativeId: decision.recommendedId, daysAvailable: decision.daysAvailable,
+  };
+}
+
+const ASSUMPTIONS = [
+  "การตรวจ Incoterm ใช้หลักการทั่วไปของ Incoterms 2020 เพื่อเทียบความสอดคล้องของภาระค่าใช้จ่ายเท่านั้น ไม่ใช่คำวินิจฉัยทางกฎหมาย",
+  "การแนะนำ HS code อ้างอิงจาก keyword ในคำอธิบายสินค้าเท่านั้น ไม่ใช่ระบบศุลกากรจริง ควรยืนยันกับกรมศุลกากรหรือผู้เชี่ยวชาญก่อนยื่นเอกสารจริง",
+  "Risk score และ customs readiness score เป็นค่าประมาณจาก weighted severity ของปัญหาที่พบ ใช้เพื่อจัดลำดับความสำคัญ ไม่ใช่ค่าที่กรมศุลกากรใช้จริง",
+  "ตัวเลขค่าใช้จ่าย/ระยะเวลาล่าช้าในแต่ละทางเลือกเป็นตัวเลขจำลองเพื่อสาธิตหลักการ ไม่ใช่ราคาจริงของผู้ให้บริการโลจิสติกส์",
+  "ระบบนี้เป็น prototype ที่ใช้ข้อมูลจำลอง ยังไม่เชื่อมต่อฐานข้อมูลศุลกากรหรือระบบ OCR จริง",
+];
+
+/* ============================================================
+   Embedded mock dataset (30 shipments) — seeded for the prototype
+   ============================================================ */
+const RAW_SHIPMENTS = [{"id":"SHP-001","destinationCountry":"China","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-01","deadline":"2026-07-20","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-001","buyer":"Guangzhou Trading Co."},"invoice":{"invoiceNo":"INV-2026-001","currency":"USD","items":[{"productNameTH":"ลำไยอบแห้ง","productNameEN":"Dried longan","hsCode":"0813.40","qty":500,"unit":"kg","unitPrice":3.2}]},"packingList":{"items":[{"productNameTH":"ลำไยอบแห้ง","qty":500,"grossWeightKg":520,"netWeightKg":500}]},"billOfLading":{"type":"B/L","number":"BL-100234","carrier":"Evergreen"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-001"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-002","destinationCountry":"USA","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-02","deadline":"2026-07-22","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-002","buyer":"Pacific Import LLC"},"invoice":{"invoiceNo":"INV-2026-002","currency":"USD","items":[{"productNameTH":"เสื้อยืดคอตตอน","productNameEN":"Cotton T-shirt","hsCode":"6109.10","qty":1200,"unit":"pcs","unitPrice":2.5}]},"packingList":{"items":[{"productNameTH":"เสื้อยืดคอตตอน","qty":1200,"grossWeightKg":310,"netWeightKg":290}]},"billOfLading":{"type":"B/L","number":"BL-100235","carrier":"Maersk"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-002"},"permitsOrCertificates":{"required":false,"provided":true,"type":null}},{"id":"SHP-003","destinationCountry":"Japan","scenarioType":"normal","errorTags":["missing_permit"],"createdAt":"2026-07-02","deadline":"2026-07-18","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-003","buyer":"Osaka Foods Ltd."},"invoice":{"invoiceNo":"INV-2026-003","currency":"JPY","items":[{"productNameTH":"ข้าวหอมมะลิ","productNameEN":"Jasmine rice","hsCode":"1006.30","qty":2000,"unit":"kg","unitPrice":65}]},"packingList":{"items":[{"productNameTH":"ข้าวหอมมะลิ","qty":2000,"grossWeightKg":2050,"netWeightKg":2000}]},"billOfLading":{"type":"B/L","number":"BL-100236","carrier":"NYK Line"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-003"},"permitsOrCertificates":{"required":true,"provided":false,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-004","destinationCountry":"Vietnam","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-03","deadline":"2026-07-15","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-004","buyer":"Hanoi Textile Co."},"invoice":{"invoiceNo":"INV-2026-004","currency":"USD","items":[{"productNameTH":"ผ้าฝ้ายทอมือ","productNameEN":"Handwoven cotton fabric","hsCode":"5208.11","qty":800,"unit":"meter","unitPrice":4.1}]},"packingList":{"items":[{"productNameTH":"ผ้าฝ้ายทอมือ","qty":800,"grossWeightKg":410,"netWeightKg":390}]},"billOfLading":{"type":"B/L","number":"BL-100237","carrier":"ONE Line"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-004"},"permitsOrCertificates":{"required":false,"provided":true,"type":null}},{"id":"SHP-005","destinationCountry":"Germany","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-04","deadline":"2026-07-28","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-005","buyer":"Berlin Home Decor GmbH"},"invoice":{"invoiceNo":"INV-2026-005","currency":"EUR","items":[{"productNameTH":"เครื่องเซรามิกลายไทย","productNameEN":"Thai pattern ceramic ware","hsCode":"6912.00","qty":600,"unit":"pcs","unitPrice":5.8}]},"packingList":{"items":[{"productNameTH":"เครื่องเซรามิกลายไทย","qty":600,"grossWeightKg":720,"netWeightKg":650}]},"billOfLading":{"type":"B/L","number":"BL-100238","carrier":"Hapag-Lloyd"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-005"},"permitsOrCertificates":{"required":false,"provided":true,"type":null}},{"id":"SHP-006","destinationCountry":"Australia","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-04","deadline":"2026-07-19","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-006","buyer":"Sydney Gourmet Pty Ltd"},"invoice":{"invoiceNo":"INV-2026-006","currency":"AUD","items":[{"productNameTH":"มะม่วงอบแห้ง","productNameEN":"Dried mango","hsCode":"0804.50","qty":400,"unit":"kg","unitPrice":6}]},"packingList":{"items":[{"productNameTH":"มะม่วงอบแห้ง","qty":400,"grossWeightKg":420,"netWeightKg":400}]},"billOfLading":{"type":"B/L","number":"BL-100239","carrier":"ANL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-006"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-007","destinationCountry":"South Korea","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-05","deadline":"2026-07-21","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-007","buyer":"Seoul Snack Co."},"invoice":{"invoiceNo":"INV-2026-007","currency":"USD","items":[{"productNameTH":"ข้าวเกรียบกุ้ง","productNameEN":"Shrimp cracker","hsCode":"1905.90","qty":900,"unit":"kg","unitPrice":2.2}]},"packingList":{"items":[{"productNameTH":"ข้าวเกรียบกุ้ง","qty":900,"grossWeightKg":950,"netWeightKg":900}]},"billOfLading":{"type":"B/L","number":"BL-100240","carrier":"HMM"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-007"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-008","destinationCountry":"UK","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-05","deadline":"2026-07-26","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-008","buyer":"London Spice House"},"invoice":{"invoiceNo":"INV-2026-008","currency":"GBP","items":[{"productNameTH":"พริกแกงสำเร็จรูป","productNameEN":"Ready-made curry paste","hsCode":"2103.90","qty":700,"unit":"kg","unitPrice":3.9}]},"packingList":{"items":[{"productNameTH":"พริกแกงสำเร็จรูป","qty":700,"grossWeightKg":740,"netWeightKg":700}]},"billOfLading":{"type":"B/L","number":"BL-100241","carrier":"MSC"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-008"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-009","destinationCountry":"Malaysia","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-06","deadline":"2026-07-14","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-009","buyer":"KL Wholesale Sdn Bhd"},"invoice":{"invoiceNo":"INV-2026-009","currency":"USD","items":[{"productNameTH":"กะปิ","productNameEN":"Shrimp paste","hsCode":"1605.40","qty":300,"unit":"kg","unitPrice":4.5}]},"packingList":{"items":[{"productNameTH":"กะปิ","qty":300,"grossWeightKg":330,"netWeightKg":300}]},"billOfLading":{"type":"B/L","number":"BL-100242","carrier":"RCL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-009"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-010","destinationCountry":"Singapore","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-06","deadline":"2026-07-13","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-010","buyer":"Singapore Fresh Mart"},"invoice":{"invoiceNo":"INV-2026-010","currency":"SGD","items":[{"productNameTH":"น้ำปลาแท้","productNameEN":"Fish sauce","hsCode":"2103.20","qty":1000,"unit":"L","unitPrice":1.8}]},"packingList":{"items":[{"productNameTH":"น้ำปลาแท้","qty":1000,"grossWeightKg":1250,"netWeightKg":1150}]},"billOfLading":{"type":"B/L","number":"BL-100243","carrier":"PIL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-010"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-011","destinationCountry":"China","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-07","deadline":"2026-07-24","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-011","buyer":"Shanghai Herbal Co."},"invoice":{"invoiceNo":"INV-2026-011","currency":"USD","items":[{"productNameTH":"สมุนไพรอบแห้งผสม","productNameEN":"Dried mixed herbs","hsCode":"1211.90","qty":250,"unit":"kg","unitPrice":8}]},"packingList":{"items":[{"productNameTH":"สมุนไพรอบแห้งผสม","qty":250,"grossWeightKg":270,"netWeightKg":250}]},"billOfLading":{"type":"B/L","number":"BL-100244","carrier":"COSCO"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-011"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-012","destinationCountry":"USA","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-08","deadline":"2026-07-29","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-012","buyer":"Texas BBQ Supply"},"invoice":{"invoiceNo":"INV-2026-012","currency":"USD","items":[{"productNameTH":"ซอสพริกศรีราชา","productNameEN":"Sriracha chili sauce","hsCode":"2103.90","qty":1500,"unit":"bottle","unitPrice":1.6}]},"packingList":{"items":[{"productNameTH":"ซอสพริกศรีราชา","qty":1500,"grossWeightKg":980,"netWeightKg":900}]},"billOfLading":{"type":"B/L","number":"BL-100245","carrier":"Maersk"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-012"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-013","destinationCountry":"Japan","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-08","deadline":"2026-07-23","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-013","buyer":"Tokyo Craft Import"},"invoice":{"invoiceNo":"INV-2026-013","currency":"JPY","items":[{"productNameTH":"กระเป๋าหวายสาน","productNameEN":"Woven rattan bag","hsCode":"4602.19","qty":350,"unit":"pcs","unitPrice":9.5}]},"packingList":{"items":[{"productNameTH":"กระเป๋าหวายสาน","qty":350,"grossWeightKg":300,"netWeightKg":270}]},"billOfLading":{"type":"B/L","number":"BL-100246","carrier":"NYK Line"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-013"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Fumigation Certificate"}},{"id":"SHP-014","destinationCountry":"Vietnam","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-09","deadline":"2026-07-16","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-014","buyer":"Saigon Coffee Import"},"invoice":{"invoiceNo":"INV-2026-014","currency":"USD","items":[{"productNameTH":"กาแฟคั่วบด","productNameEN":"Roasted ground coffee","hsCode":"0901.21","qty":600,"unit":"kg","unitPrice":7.2}]},"packingList":{"items":[{"productNameTH":"กาแฟคั่วบด","qty":600,"grossWeightKg":630,"netWeightKg":600}]},"billOfLading":{"type":"B/L","number":"BL-100247","carrier":"ONE Line"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-014"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-015","destinationCountry":"Germany","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-10","deadline":"2026-07-30","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-015","buyer":"Munich Wellness Store"},"invoice":{"invoiceNo":"INV-2026-015","currency":"EUR","items":[{"productNameTH":"สบู่สมุนไพรธรรมชาติ","productNameEN":"Natural herbal soap","hsCode":"3401.11","qty":2000,"unit":"pcs","unitPrice":1.1}]},"packingList":{"items":[{"productNameTH":"สบู่สมุนไพรธรรมชาติ","qty":2000,"grossWeightKg":450,"netWeightKg":420}]},"billOfLading":{"type":"B/L","number":"BL-100248","carrier":"Hapag-Lloyd"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-015"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Cosmetic Product Notification"}},{"id":"SHP-016","destinationCountry":"Australia","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-10","deadline":"2026-07-27","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-016","buyer":"Melbourne Asian Grocer"},"invoice":{"invoiceNo":"INV-2026-016","currency":"AUD","items":[{"productNameTH":"เส้นหมี่กึ่งสำเร็จรูป","productNameEN":"Instant rice noodle","hsCode":"1902.30","qty":1800,"unit":"pack","unitPrice":0.9}]},"packingList":{"items":[{"productNameTH":"เส้นหมี่กึ่งสำเร็จรูป","qty":1800,"grossWeightKg":540,"netWeightKg":500}]},"billOfLading":{"type":"B/L","number":"BL-100249","carrier":"ANL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-016"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-017","destinationCountry":"South Korea","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-11","deadline":"2026-07-25","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-017","buyer":"Busan Trading Co."},"invoice":{"invoiceNo":"INV-2026-017","currency":"USD","items":[{"productNameTH":"ทุเรียนแช่แข็ง","productNameEN":"Frozen durian","hsCode":"0811.90","qty":800,"unit":"kg","unitPrice":5.5}]},"packingList":{"items":[{"productNameTH":"ทุเรียนแช่แข็ง","qty":800,"grossWeightKg":830,"netWeightKg":800}]},"billOfLading":{"type":"AWB","number":"AWB-778812","carrier":"Thai Airways Cargo"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-017"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-018","destinationCountry":"UK","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-12","deadline":"2026-08-01","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-018","buyer":"Manchester Home Goods"},"invoice":{"invoiceNo":"INV-2026-018","currency":"GBP","items":[{"productNameTH":"เฟอร์นิเจอร์ไม้สัก","productNameEN":"Teak wood furniture","hsCode":"9403.60","qty":40,"unit":"pcs","unitPrice":120}]},"packingList":{"items":[{"productNameTH":"เฟอร์นิเจอร์ไม้สัก","qty":40,"grossWeightKg":3200,"netWeightKg":3000}]},"billOfLading":{"type":"B/L","number":"BL-100250","carrier":"MSC"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-018"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Fumigation Certificate"}},{"id":"SHP-019","destinationCountry":"Malaysia","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-13","deadline":"2026-07-20","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-019","buyer":"Johor Snack Distributor"},"invoice":{"invoiceNo":"INV-2026-019","currency":"USD","items":[{"productNameTH":"ข้าวโพดอบกรอบ","productNameEN":"Crispy roasted corn snack","hsCode":"1904.90","qty":1100,"unit":"kg","unitPrice":2}]},"packingList":{"items":[{"productNameTH":"ข้าวโพดอบกรอบ","qty":1100,"grossWeightKg":560,"netWeightKg":520}]},"billOfLading":{"type":"B/L","number":"BL-100251","carrier":"RCL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-019"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-020","destinationCountry":"Singapore","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-14","deadline":"2026-07-21","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-020","buyer":"Singapore Organic Hub"},"invoice":{"invoiceNo":"INV-2026-020","currency":"SGD","items":[{"productNameTH":"ชาอู่หลงอินทรีย์","productNameEN":"Organic oolong tea","hsCode":"0902.20","qty":500,"unit":"kg","unitPrice":12}]},"packingList":{"items":[{"productNameTH":"ชาอู่หลงอินทรีย์","qty":500,"grossWeightKg":520,"netWeightKg":500}]},"billOfLading":{"type":"B/L","number":"BL-100252","carrier":"PIL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-020"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-021","destinationCountry":"USA","scenarioType":"urgent","errorTags":["weight_error"],"createdAt":"2026-07-24","deadline":"2026-07-27","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"สมชาย - ฝ่ายส่งออก","urgentNote":"เรือออกใน 3 วัน ลูกค้าเร่งของมาก ต้องแก้เอกสารก่อนปิดตู้พรุ่งนี้เช้า","po":{"poNumber":"PO-2026-021","buyer":"Chicago Import Group"},"invoice":{"invoiceNo":"INV-2026-021","currency":"USD","items":[{"productNameTH":"น้ำพริกเผา","productNameEN":"Roasted chili paste","hsCode":"2103.90","qty":900,"unit":"kg","unitPrice":3.4}]},"packingList":{"items":[{"productNameTH":"น้ำพริกเผา","qty":900,"grossWeightKg":880,"netWeightKg":900}]},"billOfLading":{"type":"B/L","number":"BL-100253","carrier":"Maersk"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-021"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-022","destinationCountry":"China","scenarioType":"normal","errorTags":["qty_mismatch"],"createdAt":"2026-07-15","deadline":"2026-08-02","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-022","buyer":"Kunming Fruit Trading"},"invoice":{"invoiceNo":"INV-2026-022","currency":"USD","items":[{"productNameTH":"มังคุดแช่แข็ง","productNameEN":"Frozen mangosteen","hsCode":"0811.90","qty":1000,"unit":"kg","unitPrice":4.8}]},"packingList":{"items":[{"productNameTH":"มังคุดแช่แข็ง","qty":950,"grossWeightKg":1000,"netWeightKg":960}]},"billOfLading":{"type":"B/L","number":"BL-100254","carrier":"COSCO"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-022"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-023","destinationCountry":"Japan","scenarioType":"normal","errorTags":["missing_coo"],"createdAt":"2026-07-16","deadline":"2026-08-03","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-023","buyer":"Kobe Rice Import"},"invoice":{"invoiceNo":"INV-2026-023","currency":"JPY","items":[{"productNameTH":"ข้าวไรซ์เบอร์รี่","productNameEN":"Riceberry rice","hsCode":"1006.30","qty":1200,"unit":"kg","unitPrice":3}]},"packingList":{"items":[{"productNameTH":"ข้าวไรซ์เบอร์รี่","qty":1200,"grossWeightKg":1250,"netWeightKg":1200}]},"billOfLading":{"type":"B/L","number":"BL-100255","carrier":"NYK Line"},"certificateOfOrigin":{"required":true,"provided":false,"number":null},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-024","destinationCountry":"Germany","scenarioType":"normal","errorTags":["vague_description"],"createdAt":"2026-07-17","deadline":"2026-08-04","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-024","buyer":"Frankfurt General Trading"},"invoice":{"invoiceNo":"INV-2026-024","currency":"EUR","items":[{"productNameTH":"สินค้าอุปโภคบริโภคทั่วไป","productNameEN":"Mixed general goods","hsCode":null,"qty":500,"unit":"carton","unitPrice":15}]},"packingList":{"items":[{"productNameTH":"สินค้าอุปโภคบริโภคทั่วไป","qty":500,"grossWeightKg":2100,"netWeightKg":1950}]},"billOfLading":{"type":"B/L","number":"BL-100256","carrier":"Hapag-Lloyd"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-024"},"permitsOrCertificates":{"required":false,"provided":true,"type":null}},{"id":"SHP-025","destinationCountry":"Australia","scenarioType":"normal","errorTags":["weight_error"],"createdAt":"2026-07-18","deadline":"2026-08-05","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-025","buyer":"Perth Food Market"},"invoice":{"invoiceNo":"INV-2026-025","currency":"AUD","items":[{"productNameTH":"กล้วยตากอบน้ำผึ้ง","productNameEN":"Honey dried banana","hsCode":"0803.10","qty":600,"unit":"kg","unitPrice":3.7}]},"packingList":{"items":[{"productNameTH":"กล้วยตากอบน้ำผึ้ง","qty":600,"grossWeightKg":590,"netWeightKg":600}]},"billOfLading":{"type":"B/L","number":"BL-100257","carrier":"ANL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-025"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-026","destinationCountry":"UK","scenarioType":"normal","errorTags":["incoterm_conflict"],"createdAt":"2026-07-19","deadline":"2026-08-06","incoterm":"FOB","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-026","buyer":"Bristol Trading Ltd."},"invoice":{"invoiceNo":"INV-2026-026","currency":"GBP","items":[{"productNameTH":"ผลไม้กระป๋อง","productNameEN":"Canned fruit","hsCode":"2008.99","qty":2500,"unit":"can","unitPrice":0.85}]},"packingList":{"items":[{"productNameTH":"ผลไม้กระป๋อง","qty":2500,"grossWeightKg":1300,"netWeightKg":1200}]},"billOfLading":{"type":"B/L","number":"BL-100258","carrier":"MSC"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-026"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-027","destinationCountry":"Vietnam","scenarioType":"incomplete","errorTags":["missing_coo"],"createdAt":"2026-07-20","deadline":"2026-08-07","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":null,"po":{"poNumber":null,"buyer":"Da Nang Retail Co."},"invoice":{"invoiceNo":"INV-2026-027","currency":"USD","items":[{"productNameTH":"ขนมทองม้วน","productNameEN":"Thai crispy roll","hsCode":"1905.90","qty":700,"unit":"kg","unitPrice":2.9}]},"packingList":{"items":[{"productNameTH":"ขนมทองม้วน","qty":700,"grossWeightKg":730,"netWeightKg":700}]},"billOfLading":{"type":"B/L","number":null,"carrier":null},"certificateOfOrigin":{"required":true,"provided":false,"number":null},"permitsOrCertificates":{"required":false,"provided":true,"type":null}},{"id":"SHP-028","destinationCountry":"Malaysia","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-21","deadline":"2026-08-08","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"สมชาย - ฝ่ายส่งออก","po":{"poNumber":"PO-2026-028","buyer":"Penang Snack World"},"invoice":{"invoiceNo":"INV-2026-028","currency":"USD","items":[{"productNameTH":"กล้วยฉาบ","productNameEN":"Crispy fried banana chips","hsCode":"2008.19","qty":850,"unit":"kg","unitPrice":2.1}]},"packingList":{"items":[{"productNameTH":"กล้วยฉาบ","qty":850,"grossWeightKg":900,"netWeightKg":850}]},"billOfLading":{"type":"B/L","number":"BL-100259","carrier":"RCL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-028"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-029","destinationCountry":"China","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-22","deadline":"2026-08-09","incoterm":"CIF","costResponsibility":"seller_pays_freight_insurance","responsibleParty":"ธนพล - ฝ่ายขาย","po":{"poNumber":"PO-2026-029","buyer":"Chengdu Herbal Trading"},"invoice":{"invoiceNo":"INV-2026-029","currency":"USD","items":[{"productNameTH":"น้ำมันมะพร้าวสกัดเย็น","productNameEN":"Cold-pressed coconut oil","hsCode":"1513.11","qty":400,"unit":"L","unitPrice":6.5}]},"packingList":{"items":[{"productNameTH":"น้ำมันมะพร้าวสกัดเย็น","qty":400,"grossWeightKg":400,"netWeightKg":370}]},"billOfLading":{"type":"B/L","number":"BL-100260","carrier":"COSCO"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-029"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}},{"id":"SHP-030","destinationCountry":"Singapore","scenarioType":"normal","errorTags":[],"createdAt":"2026-07-23","deadline":"2026-08-10","incoterm":"FOB","costResponsibility":"buyer_pays_freight","responsibleParty":"วราภรณ์ - ฝ่ายเอกสาร","po":{"poNumber":"PO-2026-030","buyer":"Singapore Boutique Foods"},"invoice":{"invoiceNo":"INV-2026-030","currency":"SGD","items":[{"productNameTH":"น้ำผึ้งดอกลำไย","productNameEN":"Longan blossom honey","hsCode":"0409.00","qty":300,"unit":"kg","unitPrice":9}]},"packingList":{"items":[{"productNameTH":"น้ำผึ้งดอกลำไย","qty":300,"grossWeightKg":330,"netWeightKg":300}]},"billOfLading":{"type":"B/L","number":"BL-100261","carrier":"PIL"},"certificateOfOrigin":{"required":true,"provided":true,"number":"COO-2026-030"},"permitsOrCertificates":{"required":true,"provided":true,"type":"Health/Phytosanitary Certificate"}}];
+
+const COUNTRY_CHECKLIST = {"China":["Commercial Invoice","Packing List","B/L","Certificate of Origin","Fumigation Certificate (สำหรับสินค้าไม้/เกษตรบางประเภท)"],"USA":["Commercial Invoice","Packing List","B/L","Certificate of Origin","FDA Prior Notice (สำหรับอาหาร)"],"Japan":["Commercial Invoice","Packing List","B/L/AWB","Certificate of Origin","Plant Quarantine Certificate (สำหรับพืช/ผลไม้)"],"Vietnam":["Commercial Invoice","Packing List","B/L","Certificate of Origin (Form D ถ้าใช้สิทธิ AFTA)"],"Germany":["Commercial Invoice","Packing List","B/L","Certificate of Origin","EUR.1 Movement Certificate (ถ้าใช้สิทธิ FTA)"],"Australia":["Commercial Invoice","Packing List","B/L","Certificate of Origin","Biosecurity Import Declaration"],"South Korea":["Commercial Invoice","Packing List","B/L/AWB","Certificate of Origin (Form AK ถ้าใช้สิทธิ FTA)"],"UK":["Commercial Invoice","Packing List","B/L","Certificate of Origin","UKCA/CE marking (ถ้าเป็นสินค้าอุตสาหกรรม)"],"Malaysia":["Commercial Invoice","Packing List","B/L","Certificate of Origin (Form D ถ้าใช้สิทธิ AFTA)"],"Singapore":["Commercial Invoice","Packing List","B/L","Certificate of Origin"]};
+
+const PRODUCT_TRANSLATIONS = [{"th":"ลำไยอบแห้ง","en":"Dried longan"},{"th":"เสื้อยืดคอตตอน","en":"Cotton T-shirt"},{"th":"ข้าวหอมมะลิ","en":"Jasmine rice"},{"th":"ผ้าฝ้ายทอมือ","en":"Handwoven cotton fabric"},{"th":"เครื่องเซรามิกลายไทย","en":"Thai pattern ceramic ware"},{"th":"มะม่วงอบแห้ง","en":"Dried mango"},{"th":"ข้าวเกรียบกุ้ง","en":"Shrimp cracker"},{"th":"พริกแกงสำเร็จรูป","en":"Ready-made curry paste"},{"th":"กะปิ","en":"Shrimp paste"},{"th":"น้ำปลาแท้","en":"Fish sauce"},{"th":"สมุนไพรอบแห้งผสม","en":"Dried mixed herbs"},{"th":"ซอสพริกศรีราชา","en":"Sriracha chili sauce"},{"th":"กระเป๋าหวายสาน","en":"Woven rattan bag"},{"th":"กาแฟคั่วบด","en":"Roasted ground coffee"},{"th":"สบู่สมุนไพรธรรมชาติ","en":"Natural herbal soap"},{"th":"เส้นหมี่กึ่งสำเร็จรูป","en":"Instant rice noodle"},{"th":"ทุเรียนแช่แข็ง","en":"Frozen durian"},{"th":"เฟอร์นิเจอร์ไม้สัก","en":"Teak wood furniture"},{"th":"ข้าวโพดอบกรอบ","en":"Crispy roasted corn snack"},{"th":"ชาอู่หลงอินทรีย์","en":"Organic oolong tea"},{"th":"น้ำพริกเผา","en":"Roasted chili paste"},{"th":"มังคุดแช่แข็ง","en":"Frozen mangosteen"},{"th":"ข้าวไรซ์เบอร์รี่","en":"Riceberry rice"},{"th":"สินค้าอุปโภคบริโภคทั่วไป","en":"Mixed general goods"},{"th":"กล้วยตากอบน้ำผึ้ง","en":"Honey dried banana"},{"th":"ผลไม้กระป๋อง","en":"Canned fruit"},{"th":"ขนมทองม้วน","en":"Thai crispy roll"},{"th":"กล้วยฉาบ","en":"Crispy fried banana chips"},{"th":"น้ำมันมะพร้าวสกัดเย็น","en":"Cold-pressed coconut oil"},{"th":"น้ำผึ้งดอกลำไย","en":"Longan blossom honey"}];
+
+/* ============================================================
+   UI helpers
+   ============================================================ */
+function cloneShipment(s) { return JSON.parse(JSON.stringify(s)); }
+
+function translateTH(thText) {
+  const hit = PRODUCT_TRANSLATIONS.find((p) => p.th === thText);
+  return hit ? hit.en : null;
+}
+
+function nextShipmentId(shipments) {
+  const nums = shipments.map((s) => parseInt(s.id.replace("SHP-", ""), 10)).filter((n) => !isNaN(n));
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `SHP-${String(next).padStart(3, "0")}`;
+}
+
+const RISK_COLOR = { low: "var(--green)", medium: "var(--amber)", high: "var(--red)" };
+const RISK_LABEL_TH = { low: "ต่ำ", medium: "กลาง", high: "สูง" };
+const STAMP_LABEL = { low: "CLEARED", medium: "REVIEW", high: "HOLD" };
+
+/* ============================================================
+   Small building-block components
+   ============================================================ */
+function StampBadge({ level, score, size = "sm" }) {
+  const color = RISK_COLOR[level] || "var(--text-dim)";
+  const dim = size === "lg" ? 92 : 56;
+  const fontBig = size === "lg" ? 22 : 14;
+  const fontSmall = size === "lg" ? 10 : 7;
+  return (
+    <div
+      className="stamp"
+      style={{ width: dim, height: dim, borderColor: color, color }}
+      title={`Customs stamp: ${STAMP_LABEL[level]}`}
+    >
+      <div className="stampRing" style={{ borderColor: color }} />
+      <div style={{ fontSize: fontBig, fontFamily: "var(--mono)", fontWeight: 700, lineHeight: 1 }}>{score}</div>
+      <div style={{ fontSize: fontSmall, letterSpacing: "0.12em" }}>{STAMP_LABEL[level]}</div>
+    </div>
+  );
+}
+
+function ProgressBar({ value, color }) {
+  return (
+    <div className="progressTrack">
+      <div className="progressFill" style={{ width: `${value}%`, background: color || "var(--green)" }} />
+    </div>
+  );
+}
+
+function Panel({ eyebrow, title, icon, children, right }) {
+  return (
+    <section className="panel">
+      <div className="panelHead">
+        <div>
+          <div className="eyebrow">{eyebrow}</div>
+          <h3 className="panelTitle">{icon}{title}</h3>
+        </div>
+        {right}
+      </div>
+      <div className="panelBody">{children}</div>
+    </section>
+  );
+}
+
+function MissingDocsSummary({ checklist }) {
+  const missing = checklist.filter((d) => d.status === "missing");
+  const others = checklist.filter((d) => d.status !== "missing");
+
+  return (
+    <div>
+      <div className={missing.length ? "missingSummary missingSummaryBad" : "missingSummary missingSummaryOk"}>
+        {missing.length ? <XCircle size={15} /> : <CheckCircle2 size={15} />}
+        {missing.length ? `ขาด ${missing.length} รายการ` : "เอกสารครบถ้วน — ไม่มีรายการที่ขาด"}
+      </div>
+
+      {missing.map((d) => (
+        <div key={d.docType} className="checkRow">
+          <XCircle size={14} color="var(--red)" />
+          <span className="strong">{d.docType}</span>
+        </div>
+      ))}
+
+      {others.length > 0 && (
+        <details className="docDetails">
+          <summary>ดูเอกสารที่มีแล้ว / ไม่บังคับ ({others.length})</summary>
+          {others.map((d) => (
+            <div key={d.docType} className="checkRow">
+              {d.status === "present" && <CheckCircle2 size={14} color="var(--green)" />}
+              {d.status === "not_required" && <span className="dot" />}
+              <span className="dim">{d.docType}</span>
+              {d.status === "not_required" && <span className="dim small">(ไม่บังคับ)</span>}
+            </div>
+          ))}
+        </details>
+      )}
+    </div>
+  );
+}
+
+function ScenarioBadge({ type }) {
+  const map = {
+    normal: { label: "ปกติ", cls: "badgeGreen" },
+    urgent: { label: "ฉุกเฉิน", cls: "badgeRed" },
+    incomplete: { label: "ข้อมูลไม่ครบ", cls: "badgeAmber" },
+  };
+  const m = map[type] || map.normal;
+  return <span className={`badge ${m.cls}`}>{m.label}</span>;
+}
+
+function DecisionStatusBadge({ status }) {
+  const map = {
+    pending: { label: "รอการตัดสินใจ", cls: "badgeMuted", icon: <Clock size={12} /> },
+    accepted: { label: "ยอมรับแล้ว", cls: "badgeGreen", icon: <ThumbsUp size={12} /> },
+    rejected: { label: "ปฏิเสธแล้ว", cls: "badgeRed", icon: <ThumbsDown size={12} /> },
+    modified: { label: "แก้ไขเอง", cls: "badgeAmber", icon: <Pencil size={12} /> },
+  };
+  const m = map[status] || map.pending;
+  return <span className={`badge ${m.cls}`} style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>{m.icon}{m.label}</span>;
+}
+
+/* ============================================================
+   Overview (list) view
+   ============================================================ */
+function Overview({ shipments, analyses, onOpen, onNew, search, setSearch, riskFilter, setRiskFilter, scenarioFilter, setScenarioFilter }) {
+  const rows = shipments
+    .map((s, i) => ({ s, a: analyses[i] }))
+    .filter(({ s }) => (search ? (s.id + s.destinationCountry + (s.po?.buyer || "")).toLowerCase().includes(search.toLowerCase()) : true))
+    .filter(({ a }) => (riskFilter === "all" ? true : a.riskLevel === riskFilter))
+    .filter(({ s }) => (scenarioFilter === "all" ? true : s.scenarioType === scenarioFilter));
+
+  const avgCompleteness = Math.round(analyses.reduce((sum, a) => sum + a.completeness, 0) / analyses.length);
+  const highRiskCount = analyses.filter((a) => a.riskLevel === "high").length;
+  const totalDelay = analyses.reduce((sum, a) => sum + a.estimatedDelayDays, 0);
+  const readyCount = analyses.filter((a) => a.findings.length === 0).length;
+
+  return (
+    <div>
+      <div className="kpiRow">
+        <div className="kpiCard">
+          <div className="kpiLabel">ชิปเมนต์ทั้งหมด</div>
+          <div className="kpiValue">{shipments.length}</div>
+          <div className="kpiSub">{readyCount} รายการพร้อมส่งออกทันที</div>
+        </div>
+        <div className="kpiCard">
+          <div className="kpiLabel">ความสมบูรณ์เอกสารเฉลี่ย</div>
+          <div className="kpiValue">{avgCompleteness}%</div>
+          <div className="kpiSub">เฉลี่ยทั้งหมด 30 ชิปเมนต์</div>
+        </div>
+        <div className="kpiCard" style={{ borderColor: highRiskCount > 0 ? "var(--red)" : "var(--line)" }}>
+          <div className="kpiLabel">ชิปเมนต์ความเสี่ยงสูง</div>
+          <div className="kpiValue" style={{ color: highRiskCount > 0 ? "var(--red)" : "var(--text)" }}>{highRiskCount}</div>
+          <div className="kpiSub">ต้องดำเนินการก่อน</div>
+        </div>
+        <div className="kpiCard">
+          <div className="kpiLabel">ความล่าช้าสะสมที่อาจเกิดขึ้น</div>
+          <div className="kpiValue">{totalDelay}<span style={{ fontSize: 14, marginLeft: 4 }}>วัน</span></div>
+          <div className="kpiSub">ถ้าไม่แก้ปัญหาที่พบเลย</div>
+        </div>
+      </div>
+
+      <div className="toolbar">
+        <div className="searchBox">
+          <Search size={15} color="var(--text-dim)" />
+          <input placeholder="ค้นหา ID / ประเทศ / ผู้ซื้อ" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <select value={riskFilter} onChange={(e) => setRiskFilter(e.target.value)}>
+          <option value="all">ทุกระดับความเสี่ยง</option>
+          <option value="low">ความเสี่ยงต่ำ</option>
+          <option value="medium">ความเสี่ยงกลาง</option>
+          <option value="high">ความเสี่ยงสูง</option>
+        </select>
+        <select value={scenarioFilter} onChange={(e) => setScenarioFilter(e.target.value)}>
+          <option value="all">ทุกสถานการณ์</option>
+          <option value="normal">ปกติ</option>
+          <option value="urgent">ฉุกเฉิน</option>
+          <option value="incomplete">ข้อมูลไม่ครบ</option>
+        </select>
+        <button className="btnPrimary" onClick={onNew}><PlusCircle size={15} /> เพิ่มชิปเมนต์ใหม่</button>
+      </div>
+
+      <div className="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th><th>Shipment</th><th>ปลายทาง</th><th>สถานการณ์</th><th>ความสมบูรณ์</th>
+              <th>Readiness</th><th>ความเสี่ยง</th><th>ล่าช้าประมาณ</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ s, a }) => (
+              <tr key={s.id} className="rowClick" onClick={() => onOpen(s.id)}>
+                <td><StampBadge level={a.riskLevel} score={a.customsReadinessScore} size="sm" /></td>
+                <td>
+                  <div className="mono strong">{s.id}</div>
+                  <div className="dim small">{s.po?.buyer || "-"}</div>
+                </td>
+                <td><Globe2 size={13} style={{ marginRight: 4, verticalAlign: -2 }} />{s.destinationCountry}</td>
+                <td><ScenarioBadge type={s.scenarioType} /></td>
+                <td style={{ minWidth: 120 }}>
+                  <ProgressBar value={a.completeness} color={a.completeness === 100 ? "var(--green)" : "var(--amber)"} />
+                  <div className="small dim mono">{a.completeness}%</div>
+                </td>
+                <td className="mono strong">{a.customsReadinessScore}</td>
+                <td><span className="badge" style={{ borderColor: RISK_COLOR[a.riskLevel], color: RISK_COLOR[a.riskLevel] }}>{RISK_LABEL_TH[a.riskLevel]}</span></td>
+                <td className="mono">{a.estimatedDelayDays > 0 ? `${a.estimatedDelayDays} วัน` : "-"}</td>
+                <td><button className="btnGhost">ดูรายละเอียด →</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {rows.length === 0 && <div className="emptyState">ไม่พบชิปเมนต์ที่ตรงกับตัวกรอง</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   Shared OCR / document-extraction hook (Claude API)
+   ============================================================ */
+const OCR_MAX_BYTES = 10 * 1024 * 1024; // 10MB
+const OCR_INSTRUCTION = "อ่านเอกสารส่งออก (เช่น commercial invoice, packing list, purchase order, bill of lading, certificate of origin) ในไฟล์นี้ แล้วดึงข้อมูลออกมาเป็น JSON เท่านั้น ห้ามมีข้อความอื่น ห้ามมี markdown code fence ใช้ null สำหรับข้อมูลที่ไม่พบในเอกสาร ห้ามเดาตัวเลขที่ไม่มีในเอกสาร โครงสร้างที่ต้องตอบกลับคือ: "
+  + '{"buyer":string|null,"poNumber":string|null,"invoiceNo":string|null,"productNameEN":string|null,"productNameTH":string|null,"hsCode":string|null,"qty":number|null,"unit":string|null,"unitPrice":number|null,"grossWeightKg":number|null,"netWeightKg":number|null,"incoterm":string|null,"destinationCountry":string|null,"blType":"B/L or AWB or null","blNumber":string|null,"carrier":string|null,"cooProvided":true false or null,"deadline":"YYYY-MM-DD or null"}';
+
+function useDocumentOcr() {
+  const [status, setStatus] = useState("idle"); // idle | extracting | success | error
+  const [fileName, setFileName] = useState("");
+  const [fileSizeLabel, setFileSizeLabel] = useState("");
+  const [error, setError] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewIsPdf, setPreviewIsPdf] = useState(false);
+  const [fields, setFields] = useState([]);
+
+  function reset() {
+    setStatus("idle"); setFileName(""); setFileSizeLabel(""); setError(""); setPreviewUrl(null); setPreviewIsPdf(false); setFields([]);
+  }
+
+  async function runExtraction(file, onExtracted) {
+    setFileName(file.name);
+    setFileSizeLabel(`${(file.size / 1024 / 1024).toFixed(1)} MB`);
+    setError(""); setFields([]);
+
+    if (file.size > OCR_MAX_BYTES) {
+      setStatus("error");
+      setError(`ไฟล์ใหญ่เกินไป (${(file.size / 1024 / 1024).toFixed(1)} MB) — รองรับไม่เกิน 10 MB`);
+      return;
+    }
+
+    setStatus("extracting");
+    try {
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+        reader.onerror = () => reject(new Error("อ่านไฟล์ไม่สำเร็จ"));
+        reader.readAsDataURL(file);
+      });
+      const isPdf = file.type === "application/pdf";
+      setPreviewIsPdf(isPdf);
+      setPreviewUrl(isPdf ? null : `data:${file.type || "image/jpeg"};base64,${base64Data}`);
+
+      const contentBlock = isPdf
+        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64Data } }
+        : { type: "image", source: { type: "base64", media_type: file.type || "image/jpeg", data: base64Data } };
+
+      const response = await fetch("/api/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-5",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: [contentBlock, { type: "text", text: OCR_INSTRUCTION }] }],
+        }),
+      });
+      if (!response.ok) throw new Error(`API error ${response.status}`);
+      const data = await response.json();
+      const textOut = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
+      const cleaned = textOut.replace(/```json|```/g, "").trim();
+      const extracted = JSON.parse(cleaned);
+      const filled = onExtracted(extracted) || [];
+      setFields(filled);
+      setStatus("success");
+    } catch (err) {
+      setStatus("error");
+      setError("อ่านเอกสารด้วย AI ไม่สำเร็จ กรุณากรอกข้อมูลด้วยตนเอง หรือลองอัปโหลดไฟล์ใหม่อีกครั้ง");
+    }
+  }
+
+  return { status, fileName, fileSizeLabel, error, previewUrl, previewIsPdf, fields, runExtraction, reset };
+}
+
+function OcrStatusBanner({ ocr }) {
+  return (
+    <>
+      {ocr.status === "extracting" && (
+        <div className="ocrBanner ocrBannerBusy"><Loader2 size={14} className="spin" /> กำลังอ่าน "{ocr.fileName}" ด้วย AI...</div>
+      )}
+      {ocr.status === "success" && (
+        <div className="ocrBanner ocrBannerOk">
+          <CheckCircle2 size={14} /> อ่าน "{ocr.fileName}" สำเร็จ — เติมข้อมูลอัตโนมัติ {ocr.fields.length} ช่อง โปรดตรวจสอบความถูกต้องก่อนบันทึก (AI อาจอ่านผิดพลาดได้)
+        </div>
+      )}
+      {ocr.status === "error" && (
+        <div className="ocrBanner ocrBannerErr"><AlertTriangle size={14} /> {ocr.error}</div>
+      )}
+      {ocr.previewUrl && (
+        <img src={ocr.previewUrl} alt="ตัวอย่างเอกสารที่อัปโหลด" className="ocrPreviewImg" />
+      )}
+      {ocr.status !== "idle" && ocr.previewIsPdf && (
+        <div className="ocrPreviewPdf"><FileWarning size={14} /> {ocr.fileName} ({ocr.fileSizeLabel}) — PDF ไม่มีตัวอย่างภาพ</div>
+      )}
+    </>
+  );
+}
+
+function DocumentUpdatePanel({ onMergeExtracted }) {
+  const ocr = useDocumentOcr();
+  const [docType, setDocType] = useState("invoice");
+
+  function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    ocr.runExtraction(file, (extracted) => onMergeExtracted(extracted, docType));
+    e.target.value = "";
+  }
+
+  return (
+    <Panel eyebrow="AI document extraction" title="อัปโหลดเอกสารเพื่ออัปเดตชิปเมนต์นี้ (OCR)" icon={<Upload size={15} />}>
+      <div className="ocrUpdateRow">
+        <select value={docType} onChange={(e) => setDocType(e.target.value)}>
+          <option value="invoice">Commercial Invoice</option>
+          <option value="packing_list">Packing List</option>
+          <option value="bl_awb">Bill of Lading / AWB</option>
+          <option value="coo">Certificate of Origin</option>
+          <option value="permit">Permit / Product Certificate</option>
+          <option value="general">อื่นๆ / ไม่แน่ใจ</option>
+        </select>
+        <label className="uploadBox uploadBoxCompact" htmlFor="ocrUpdateInput">
+          <Upload size={16} />
+          <div className="small">คลิกเพื่อเลือกไฟล์ภาพหรือ PDF</div>
+        </label>
+        <input id="ocrUpdateInput" type="file" accept="image/*,application/pdf" style={{ display: "none" }} onChange={handleFile} />
+      </div>
+      <div className="dim small" style={{ marginTop: 6 }}>ข้อมูลที่อ่านได้จะถูกนำไปเติมใน "What-if sandbox" ด้านล่างให้ตรวจสอบก่อน แล้วกด "ใช้การเปลี่ยนแปลงนี้" เพื่อบันทึกจริง</div>
+      <OcrStatusBanner ocr={ocr} />
+    </Panel>
+  );
+}
+
+/* ============================================================
+   Detail view
+   ============================================================ */
+function DetailView({ shipment, analysis, onBack, decision, onSelectAlt, onDecisionAction, whatIfDraft, onWhatIfChange, onApplyWhatIf, onResetWhatIf, onMergeExtracted }) {
+  const item = shipment.invoice?.items?.[0] || {};
+  const pkItem = shipment.packingList?.items?.[0] || {};
+  const enTranslation = translateTH(item.productNameTH);
+  const countryDocs = COUNTRY_CHECKLIST[shipment.destinationCountry] || [];
+  const daysLeft = daysBetween(new Date().toISOString().slice(0, 10), shipment.deadline);
+
+  const draftAnalysis = whatIfDraft ? analyzeShipment(whatIfDraft) : null;
+
+  return (
+    <div>
+      <button className="btnGhost" onClick={onBack} style={{ marginBottom: 14 }}><ChevronLeft size={15} /> กลับไปหน้ารวม</button>
+
+      <div className="detailHeader">
+        <StampBadge level={analysis.riskLevel} score={analysis.customsReadinessScore} size="lg" />
+        <div style={{ flex: 1 }}>
+          <div className="eyebrow">Shipment</div>
+          <h2 className="mono" style={{ fontSize: 26, margin: "2px 0 6px", fontFamily: "var(--display)", letterSpacing: "0.02em" }}>{shipment.id}</h2>
+          <div className="metaRow">
+            <span><Globe2 size={13} /> {shipment.destinationCountry}</span>
+            <span><Anchor size={13} /> {shipment.incoterm}</span>
+            <span><Clock size={13} /> {daysLeft >= 0 ? `เหลือ ${daysLeft} วันถึงกำหนด` : `เกินกำหนดมาแล้ว ${Math.abs(daysLeft)} วัน`}</span>
+            <ScenarioBadge type={shipment.scenarioType} />
+          </div>
+          {shipment.urgentNote && <div className="urgentNote"><AlertTriangle size={14} /> {shipment.urgentNote}</div>}
+        </div>
+      </div>
+
+      {/* 8 required dashboard panels */}
+      <div className="grid8">
+        <Panel eyebrow="1 / 8" title="ความสมบูรณ์ของเอกสาร" icon={<ClipboardList size={15} />}>
+          <div style={{ fontSize: 32, fontFamily: "var(--mono)", fontWeight: 700 }}>{analysis.completeness}%</div>
+          <ProgressBar value={analysis.completeness} color={analysis.completeness === 100 ? "var(--green)" : "var(--amber)"} />
+        </Panel>
+
+        <Panel eyebrow="2 / 8" title="รายการเอกสารที่ขาด" icon={<FileWarning size={15} />}>
+          <MissingDocsSummary checklist={analysis.missingDocumentsChecklist} />
+        </Panel>
+
+        <Panel eyebrow="3 / 8" title="ความไม่สอดคล้องระหว่างเอกสาร" icon={<AlertTriangle size={15} />}>
+          {analysis.findings.filter((f) => ["qty_mismatch", "weight_error", "incoterm_conflict", "vague_description"].includes(f.tag)).length === 0
+            ? <div className="okLine"><CheckCircle2 size={14} color="var(--green)" /> ไม่พบความไม่สอดคล้อง</div>
+            : analysis.findings.filter((f) => ["qty_mismatch", "weight_error", "incoterm_conflict", "vague_description"].includes(f.tag)).map((f) => (
+              <div key={f.tag} className="findingCard">
+                <div className="findingHead"><AlertTriangle size={13} color={f.severity === "high" ? "var(--red)" : "var(--amber)"} /> {f.message}</div>
+                <div className="dim small">เหตุผล: {f.reasoning}</div>
+                <div className="small">แนะนำ: {f.suggestedFix}</div>
+              </div>
+            ))}
+        </Panel>
+
+        <Panel eyebrow="4 / 8" title="Customs Readiness Score" icon={<Gauge size={15} />}>
+          <div style={{ fontSize: 32, fontFamily: "var(--mono)", fontWeight: 700, color: RISK_COLOR[analysis.riskLevel] }}>{analysis.customsReadinessScore}<span style={{ fontSize: 14 }}>/100</span></div>
+          <div className="dim small">Risk score รวม: {analysis.riskScore}/100</div>
+        </Panel>
+
+        <Panel eyebrow="5 / 8" title="ระดับความเสี่ยง" icon={<ShieldIconFallback />}>
+          <span className="badge" style={{ borderColor: RISK_COLOR[analysis.riskLevel], color: RISK_COLOR[analysis.riskLevel], fontSize: 14, padding: "6px 14px" }}>
+            {RISK_LABEL_TH[analysis.riskLevel].toUpperCase()} — {STAMP_LABEL[analysis.riskLevel]}
+          </span>
+        </Panel>
+
+        <Panel eyebrow="6 / 8" title="พิกัดศุลกากร (HS-code) ที่แนะนำ" icon={<ScrollText size={15} />}>
+          {analysis.hsCodeSuggestions.map((h, idx) => (
+            <div key={idx}>
+              <div className="mono strong">{h.productNameEN} {enTranslation && <span className="badge badgeMuted" style={{ marginLeft: 6 }}><Languages size={10} /> TH↔EN match</span>}</div>
+              {h.status === "confirmed" && <div className="small" style={{ color: "var(--green)" }}>ยืนยันแล้ว: {h.hsCode}</div>}
+              {h.status === "suggested" && (
+                <div className="small">
+                  {h.candidates.map((c, i) => (<div key={i} className="dim">• {c.categoryTH} — Chapter {c.hsChapter} (เช่น {c.sampleHsCode})</div>))}
+                  <div className="dim" style={{ marginTop: 4 }}>{h.message}</div>
+                </div>
+              )}
+              {h.status === "need_more_info" && <div className="small" style={{ color: "var(--amber)" }}>{h.message}</div>}
+            </div>
+          ))}
+        </Panel>
+
+        <Panel eyebrow="7 / 8" title="ผู้รับผิดชอบแก้ไขปัญหา" icon={<ClipboardList size={15} />}>
+          <div className="mono small">ผู้ดูแลชิปเมนต์: {shipment.responsibleParty || "ยังไม่มอบหมาย"}</div>
+          {analysis.findings.length > 0 && <div style={{ marginTop: 6 }}>
+            {analysis.findings.map((f) => (<div key={f.tag} className="small dim">• {f.message.slice(0, 28)}… → {f.responsibleParty}</div>))}
+          </div>}
+        </Panel>
+
+        <Panel eyebrow="8 / 8" title="ระยะเวลาล่าช้าโดยประมาณ" icon={<Clock size={15} />}>
+          <div style={{ fontSize: 32, fontFamily: "var(--mono)", fontWeight: 700, color: analysis.estimatedDelayDays > 0 ? "var(--amber)" : "var(--green)" }}>
+            {analysis.estimatedDelayDays} <span style={{ fontSize: 14 }}>วัน</span>
+          </div>
+          <div className="dim small">หากไม่แก้ปัญหาที่พบก่อนปิดตู้</div>
+        </Panel>
+      </div>
+
+      {/* Decision alternatives + human override */}
+      <Panel eyebrow="Decision Support" title="3 ทางเลือกในการตัดสินใจ" icon={<Info size={15} />} right={<DecisionStatusBadge status={decision.status} />}>
+        <div className="altGrid">
+          {analysis.decisionAlternatives.map((alt) => {
+            const isRecommended = alt.id === analysis.recommendedAlternativeId;
+            const isChosen = alt.id === decision.chosenId;
+            return (
+              <div key={alt.id} className={`altCard ${isChosen ? "altCardActive" : ""}`} onClick={() => onSelectAlt(alt.id)}>
+                {isRecommended && <div className="recTag">AI แนะนำ</div>}
+                <div className="strong" style={{ marginBottom: 6 }}>{alt.nameTH}</div>
+                <div className="small dim" style={{ marginBottom: 10 }}>{alt.summary}</div>
+                <div className="altMetrics">
+                  <div><span className="dim small">ล่าช้า</span><div className="mono">{alt.delayDays} วัน</div></div>
+                  <div><span className="dim small">Risk คงเหลือ</span><div className="mono">{alt.residualRiskScore}</div></div>
+                  <div><span className="dim small">ค่าใช้จ่ายเพิ่ม</span><div className="mono">${alt.extraCostUSD ?? alt.expectedPenaltyUSD ?? 0}</div></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="decisionActions">
+          <button className="btnPrimary" onClick={() => onDecisionAction("accepted")}><ThumbsUp size={14} /> ยอมรับทางเลือกนี้</button>
+          <button className="btnGhost" onClick={() => onDecisionAction("rejected")}><ThumbsDown size={14} /> ปฏิเสธ</button>
+          <button className="btnGhost" onClick={() => onDecisionAction("modified")}><Pencil size={14} /> แก้ไขเอง / เพิ่มบันทึก</button>
+        </div>
+        {decision.status === "modified" && (
+          <textarea className="noteBox" placeholder="อธิบายแนวทางที่ปรับเอง..." value={decision.note} onChange={(e) => onDecisionAction("modified", e.target.value)} />
+        )}
+      </Panel>
+
+      {/* Update documents via OCR */}
+      <DocumentUpdatePanel onMergeExtracted={onMergeExtracted} />
+
+      {/* What-if sandbox */}
+      <Panel eyebrow="What-if" title="ปรับสมมติฐาน แล้วดูว่าคำแนะนำเปลี่ยนไปอย่างไร" icon={<RotateCcw size={15} />}>
+        {whatIfDraft && draftAnalysis && (
+          <div className="whatIfGrid">
+            <div className="whatIfForm">
+              <label>Incoterm
+                <select value={whatIfDraft.incoterm} onChange={(e) => onWhatIfChange("incoterm", e.target.value)}>
+                  {Object.keys(INCOTERM_EXPECTED_RESPONSIBILITY).map((k) => <option key={k} value={k}>{k}</option>)}
+                </select>
+              </label>
+              <label>ผู้รับผิดชอบค่าขนส่ง
+                <select value={whatIfDraft.costResponsibility} onChange={(e) => onWhatIfChange("costResponsibility", e.target.value)}>
+                  <option value="buyer_pays_freight">ผู้ซื้อจ่าย</option>
+                  <option value="seller_pays_freight_insurance">ผู้ขายจ่าย</option>
+                </select>
+              </label>
+              <label>จำนวนใน Invoice
+                <input type="number" value={whatIfDraft.invoice.items[0].qty} onChange={(e) => onWhatIfChange("invoiceQty", Number(e.target.value))} />
+              </label>
+              <label>จำนวนใน Packing List
+                <input type="number" value={whatIfDraft.packingList.items[0].qty} onChange={(e) => onWhatIfChange("packingQty", Number(e.target.value))} />
+              </label>
+              <label>Gross weight (kg)
+                <input type="number" value={whatIfDraft.packingList.items[0].grossWeightKg} onChange={(e) => onWhatIfChange("grossWeight", Number(e.target.value))} />
+              </label>
+              <label>Net weight (kg)
+                <input type="number" value={whatIfDraft.packingList.items[0].netWeightKg} onChange={(e) => onWhatIfChange("netWeight", Number(e.target.value))} />
+              </label>
+              <label className="checkboxLabel">
+                <input type="checkbox" checked={!!whatIfDraft.certificateOfOrigin.provided} onChange={(e) => onWhatIfChange("cooProvided", e.target.checked)} /> มี Certificate of Origin
+              </label>
+              {whatIfDraft.permitsOrCertificates?.required && (
+                <label className="checkboxLabel">
+                  <input type="checkbox" checked={!!whatIfDraft.permitsOrCertificates.provided} onChange={(e) => onWhatIfChange("permitProvided", e.target.checked)} /> มี{whatIfDraft.permitsOrCertificates.type}
+                </label>
+              )}
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <button className="btnPrimary" onClick={onApplyWhatIf}>ใช้การเปลี่ยนแปลงนี้</button>
+                <button className="btnGhost" onClick={onResetWhatIf}>ล้างค่า</button>
+              </div>
+            </div>
+            <div className="whatIfCompare">
+              <div className="compareCol">
+                <div className="eyebrow">ปัจจุบัน</div>
+                <CompareStat label="Completeness" value={`${analysis.completeness}%`} />
+                <CompareStat label="Risk score" value={analysis.riskScore} />
+                <CompareStat label="Readiness" value={analysis.customsReadinessScore} />
+                <CompareStat label="Delay" value={`${analysis.estimatedDelayDays} วัน`} />
+              </div>
+              <div className="compareCol compareColHi">
+                <div className="eyebrow">ถ้าเปลี่ยนตามนี้</div>
+                <CompareStat label="Completeness" value={`${draftAnalysis.completeness}%`} highlight={draftAnalysis.completeness !== analysis.completeness} />
+                <CompareStat label="Risk score" value={draftAnalysis.riskScore} highlight={draftAnalysis.riskScore !== analysis.riskScore} />
+                <CompareStat label="Readiness" value={draftAnalysis.customsReadinessScore} highlight={draftAnalysis.customsReadinessScore !== analysis.customsReadinessScore} />
+                <CompareStat label="Delay" value={`${draftAnalysis.estimatedDelayDays} วัน`} highlight={draftAnalysis.estimatedDelayDays !== analysis.estimatedDelayDays} />
+              </div>
+            </div>
+          </div>
+        )}
+      </Panel>
+
+      {/* Creative extensions: country checklist + translation reference */}
+      <Panel eyebrow="Creative extension" title={`เอกสารที่ปลายทาง ${shipment.destinationCountry} มักต้องใช้`} icon={<Globe2 size={15} />}>
+        <div className="tagWrap">{countryDocs.map((d) => <span key={d} className="tag">{d}</span>)}</div>
+      </Panel>
+
+      {/* Transparency panel */}
+      <Panel eyebrow="Transparency" title="สมมติฐานและข้อจำกัดของระบบ" icon={<Info size={15} />}>
+        <ul className="assumptionList">
+          {ASSUMPTIONS.map((a, i) => <li key={i}>{a}</li>)}
+        </ul>
+      </Panel>
+    </div>
+  );
+}
+
+function ShieldIconFallback() { return <AlertTriangle size={15} />; }
+
+function CompareStat({ label, value, highlight }) {
+  return (
+    <div className="compareStat">
+      <span className="dim small">{label}</span>
+      <span className={highlight ? "mono strong highlightVal" : "mono"}>{value}</span>
+    </div>
+  );
+}
+
+/* ============================================================
+   New shipment form
+   ============================================================ */
+function NewShipmentForm({ onCancel, onCreate }) {
+  const [form, setForm] = useState({
+    destinationCountry: "China", incoterm: "FOB", costResponsibility: "buyer_pays_freight",
+    buyer: "", poNumber: "", invoiceNo: "", productNameTH: "", productNameEN: "", hsCode: "",
+    qty: 100, unit: "kg", unitPrice: 1, grossWeightKg: 100, netWeightKg: 95,
+    blType: "B/L", blNumber: "", carrier: "", cooRequired: true, cooProvided: true,
+    permitRequired: false, permitProvided: false, permitType: "", responsibleParty: "",
+    deadline: "", createdAt: new Date().toISOString().slice(0, 10),
+  });
+  const ocr = useDocumentOcr();
+
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  function applyExtracted(ex) {
+    const filled = [];
+    setForm((f) => {
+      const next = { ...f };
+      const maybe = (key, val, valid = true) => { if (val !== null && val !== undefined && val !== "" && valid) { next[key] = val; filled.push(key); } };
+      maybe("buyer", ex.buyer);
+      maybe("poNumber", ex.poNumber);
+      maybe("invoiceNo", ex.invoiceNo);
+      maybe("productNameEN", ex.productNameEN);
+      maybe("productNameTH", ex.productNameTH);
+      maybe("hsCode", ex.hsCode);
+      maybe("qty", ex.qty, typeof ex.qty === "number");
+      maybe("unit", ex.unit);
+      maybe("unitPrice", ex.unitPrice, typeof ex.unitPrice === "number");
+      maybe("grossWeightKg", ex.grossWeightKg, typeof ex.grossWeightKg === "number");
+      maybe("netWeightKg", ex.netWeightKg, typeof ex.netWeightKg === "number");
+      maybe("incoterm", ex.incoterm, !!INCOTERM_EXPECTED_RESPONSIBILITY[ex.incoterm]);
+      maybe("destinationCountry", ex.destinationCountry, !!COUNTRY_CHECKLIST[ex.destinationCountry]);
+      maybe("blType", ex.blType, ex.blType === "B/L" || ex.blType === "AWB");
+      maybe("blNumber", ex.blNumber);
+      maybe("carrier", ex.carrier);
+      maybe("cooProvided", ex.cooProvided, typeof ex.cooProvided === "boolean");
+      maybe("deadline", ex.deadline);
+      return next;
+    });
+    return filled;
+  }
+
+  function handleFileUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    ocr.runExtraction(file, applyExtracted);
+    e.target.value = "";
+  }
+
+  function submit() {
+    const shipment = {
+      id: "", destinationCountry: form.destinationCountry, scenarioType: "normal",
+      createdAt: form.createdAt, deadline: form.deadline || form.createdAt,
+      incoterm: form.incoterm, costResponsibility: form.costResponsibility, responsibleParty: form.responsibleParty,
+      po: { poNumber: form.poNumber || null, buyer: form.buyer },
+      invoice: { invoiceNo: form.invoiceNo, currency: "USD", items: [{ productNameTH: form.productNameTH, productNameEN: form.productNameEN, hsCode: form.hsCode || null, qty: Number(form.qty), unit: form.unit, unitPrice: Number(form.unitPrice) }] },
+      packingList: { items: [{ productNameTH: form.productNameTH, qty: Number(form.qty), grossWeightKg: Number(form.grossWeightKg), netWeightKg: Number(form.netWeightKg) }] },
+      billOfLading: { type: form.blType, number: form.blNumber || null, carrier: form.carrier || null },
+      certificateOfOrigin: { required: form.cooRequired, provided: form.cooProvided, number: form.cooProvided ? "COO-NEW" : null },
+      permitsOrCertificates: { required: form.permitRequired, provided: form.permitProvided, type: form.permitType || null },
+    };
+    onCreate(shipment);
+  }
+
+  return (
+    <div>
+      <button className="btnGhost" onClick={onCancel} style={{ marginBottom: 14 }}><ChevronLeft size={15} /> กลับไปหน้ารวม</button>
+
+      <Panel eyebrow="Data intake · AI document extraction" title="อัปโหลดเอกสาร (Invoice / Packing List / PO) ให้ AI อ่านให้อัตโนมัติ" icon={<Upload size={15} />}>
+        <label className="uploadBox" htmlFor="ocrFileInput">
+          <Upload size={18} />
+          <div>
+            <div className="strong small">คลิกเพื่อเลือกไฟล์ภาพหรือ PDF</div>
+            <div className="dim small">รองรับ JPG, PNG, PDF (ไม่เกิน 10MB) — ระบบจะดึงข้อมูลมาเติมในฟอร์มด้านล่างให้อัตโนมัติ</div>
+          </div>
+        </label>
+        <input id="ocrFileInput" type="file" accept="image/*,application/pdf" style={{ display: "none" }} onChange={handleFileUpload} />
+        <OcrStatusBanner ocr={ocr} />
+      </Panel>
+
+      <Panel eyebrow="Data intake · Manual" title="ตรวจสอบ / กรอกข้อมูลชิปเมนต์" icon={<PlusCircle size={15} />}>
+        <div className="formGrid">
+          <label>ประเทศปลายทาง<select value={form.destinationCountry} onChange={(e) => set("destinationCountry", e.target.value)}>{Object.keys(COUNTRY_CHECKLIST).map((c) => <option key={c}>{c}</option>)}</select></label>
+          <label>Incoterm<select value={form.incoterm} onChange={(e) => set("incoterm", e.target.value)}>{Object.keys(INCOTERM_EXPECTED_RESPONSIBILITY).map((k) => <option key={k}>{k}</option>)}</select></label>
+          <label>ผู้รับผิดชอบค่าขนส่ง<select value={form.costResponsibility} onChange={(e) => set("costResponsibility", e.target.value)}><option value="buyer_pays_freight">ผู้ซื้อจ่าย</option><option value="seller_pays_freight_insurance">ผู้ขายจ่าย</option></select></label>
+          <label>ผู้ซื้อ (Buyer)<input value={form.buyer} onChange={(e) => set("buyer", e.target.value)} /></label>
+          <label>เลข PO<input value={form.poNumber} onChange={(e) => set("poNumber", e.target.value)} /></label>
+          <label>เลข Invoice<input value={form.invoiceNo} onChange={(e) => set("invoiceNo", e.target.value)} /></label>
+          <label>ชื่อสินค้า (ไทย)<input value={form.productNameTH} onChange={(e) => set("productNameTH", e.target.value)} /></label>
+          <label>ชื่อสินค้า (อังกฤษ)<input value={form.productNameEN} onChange={(e) => set("productNameEN", e.target.value)} /></label>
+          <label>HS code (ปล่อยว่างได้ถ้าไม่แน่ใจ)<input value={form.hsCode} onChange={(e) => set("hsCode", e.target.value)} /></label>
+          <label>จำนวน (Invoice = Packing)<input type="number" value={form.qty} onChange={(e) => set("qty", e.target.value)} /></label>
+          <label>Gross weight (kg)<input type="number" value={form.grossWeightKg} onChange={(e) => set("grossWeightKg", e.target.value)} /></label>
+          <label>Net weight (kg)<input type="number" value={form.netWeightKg} onChange={(e) => set("netWeightKg", e.target.value)} /></label>
+          <label>ประเภท B/L<select value={form.blType} onChange={(e) => set("blType", e.target.value)}><option>B/L</option><option>AWB</option></select></label>
+          <label>เลข B/L / AWB<input value={form.blNumber} onChange={(e) => set("blNumber", e.target.value)} /></label>
+          <label>สายเรือ/สายการบิน<input value={form.carrier} onChange={(e) => set("carrier", e.target.value)} /></label>
+          <label>ผู้รับผิดชอบชิปเมนต์<input value={form.responsibleParty} onChange={(e) => set("responsibleParty", e.target.value)} /></label>
+          <label>กำหนดปิดตู้ (deadline)<input type="date" value={form.deadline} onChange={(e) => set("deadline", e.target.value)} /></label>
+          <label className="checkboxLabel"><input type="checkbox" checked={form.cooRequired} onChange={(e) => set("cooRequired", e.target.checked)} /> ต้องมี Certificate of Origin</label>
+          <label className="checkboxLabel"><input type="checkbox" checked={form.cooProvided} onChange={(e) => set("cooProvided", e.target.checked)} /> มี Certificate of Origin แล้ว</label>
+          <label className="checkboxLabel"><input type="checkbox" checked={form.permitRequired} onChange={(e) => set("permitRequired", e.target.checked)} /> ต้องมีใบอนุญาต/ใบรับรองเพิ่ม</label>
+          {form.permitRequired && <label>ชื่อใบอนุญาต<input value={form.permitType} onChange={(e) => set("permitType", e.target.value)} /></label>}
+          {form.permitRequired && <label className="checkboxLabel"><input type="checkbox" checked={form.permitProvided} onChange={(e) => set("permitProvided", e.target.checked)} /> มีใบอนุญาตแล้ว</label>}
+        </div>
+        <button className="btnPrimary" style={{ marginTop: 14 }} onClick={submit}>บันทึกและวิเคราะห์</button>
+      </Panel>
+    </div>
+  );
+}
+
+/* ============================================================
+   Root App
+   ============================================================ */
+function App() {
+  const [shipments, setShipments] = useState(() => {
+    try {
+      const saved = localStorage.getItem("tradeready_shipments");
+      return saved ? JSON.parse(saved) : RAW_SHIPMENTS;
+    } catch { return RAW_SHIPMENTS; }
+  });
+  const [view, setView] = useState("list");
+  const [selectedId, setSelectedId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
+  const [scenarioFilter, setScenarioFilter] = useState("all");
+  const [decisions, setDecisions] = useState(() => {
+    try {
+      const saved = localStorage.getItem("tradeready_decisions");
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  const [whatIfDraft, setWhatIfDraft] = useState(null);
+
+  const analyses = useMemo(() => shipments.map((s) => analyzeShipment(s)), [shipments]);
+
+  useEffect(() => {
+    try { localStorage.setItem("tradeready_shipments", JSON.stringify(shipments)); } catch {}
+  }, [shipments]);
+
+  useEffect(() => {
+    try { localStorage.setItem("tradeready_decisions", JSON.stringify(decisions)); } catch {}
+  }, [decisions]);
+  const selectedShipment = shipments.find((s) => s.id === selectedId) || null;
+  const selectedAnalysis = selectedShipment ? analyzeShipment(selectedShipment) : null;
+
+  function openDetail(id) {
+    const s = shipments.find((sh) => sh.id === id);
+    if (!s) return;
+    const a = analyzeShipment(s);
+    setSelectedId(id);
+    setWhatIfDraft(cloneShipment(s));
+    setDecisions((prev) => prev[id] ? prev : { ...prev, [id]: { chosenId: a.recommendedAlternativeId, status: "pending", note: "" } });
+    setView("detail");
+  }
+
+  function selectAlt(altId) {
+    setDecisions((prev) => ({ ...prev, [selectedId]: { ...prev[selectedId], chosenId: altId, status: "pending" } }));
+  }
+
+  function decisionAction(status, note) {
+    setDecisions((prev) => ({ ...prev, [selectedId]: { ...prev[selectedId], status, note: note !== undefined ? note : prev[selectedId]?.note || "" } }));
+  }
+
+  function whatIfChange(field, value) {
+    setWhatIfDraft((prev) => {
+      const d = cloneShipment(prev);
+      if (field === "incoterm") d.incoterm = value;
+      if (field === "costResponsibility") d.costResponsibility = value;
+      if (field === "invoiceQty") d.invoice.items[0].qty = value;
+      if (field === "packingQty") d.packingList.items[0].qty = value;
+      if (field === "grossWeight") d.packingList.items[0].grossWeightKg = value;
+      if (field === "netWeight") d.packingList.items[0].netWeightKg = value;
+      if (field === "cooProvided") d.certificateOfOrigin.provided = value;
+      if (field === "permitProvided") d.permitsOrCertificates.provided = value;
+      return d;
+    });
+  }
+
+  function applyWhatIf() {
+    if (!whatIfDraft) return;
+    setShipments((prev) => prev.map((s) => (s.id === selectedId ? whatIfDraft : s)));
+    const newRecommended = analyzeShipment(whatIfDraft).recommendedAlternativeId;
+    setDecisions((prev) => ({ ...prev, [selectedId]: { chosenId: newRecommended, status: "pending", note: "" } }));
+  }
+
+  function resetWhatIf() {
+    const s = shipments.find((sh) => sh.id === selectedId);
+    if (s) setWhatIfDraft(cloneShipment(s));
+  }
+
+  function mergeExtractedIntoWhatIf(extracted, docType) {
+    const filled = [];
+    setWhatIfDraft((prev) => {
+      const d = cloneShipment(prev);
+      const maybe = (setter, val, valid = true) => {
+        if (val !== null && val !== undefined && val !== "" && valid) { setter(val); filled.push(true); }
+      };
+      if (docType === "invoice") {
+        maybe((v) => (d.invoice.invoiceNo = v), extracted.invoiceNo);
+        maybe((v) => (d.po.poNumber = v), extracted.poNumber);
+        maybe((v) => (d.po.buyer = v), extracted.buyer);
+        maybe((v) => (d.invoice.items[0].productNameEN = v), extracted.productNameEN);
+        maybe((v) => (d.invoice.items[0].productNameTH = v), extracted.productNameTH);
+        maybe((v) => (d.invoice.items[0].hsCode = v), extracted.hsCode);
+        maybe((v) => (d.invoice.items[0].qty = v), extracted.qty, typeof extracted.qty === "number");
+        maybe((v) => (d.invoice.items[0].unit = v), extracted.unit);
+        maybe((v) => (d.invoice.items[0].unitPrice = v), extracted.unitPrice, typeof extracted.unitPrice === "number");
+        maybe((v) => (d.incoterm = v), extracted.incoterm, !!INCOTERM_EXPECTED_RESPONSIBILITY[extracted.incoterm]);
+        maybe((v) => (d.deadline = v), extracted.deadline);
+      } else if (docType === "packing_list") {
+        maybe((v) => (d.packingList.items[0].productNameTH = v), extracted.productNameTH);
+        maybe((v) => (d.packingList.items[0].qty = v), extracted.qty, typeof extracted.qty === "number");
+        maybe((v) => (d.packingList.items[0].grossWeightKg = v), extracted.grossWeightKg, typeof extracted.grossWeightKg === "number");
+        maybe((v) => (d.packingList.items[0].netWeightKg = v), extracted.netWeightKg, typeof extracted.netWeightKg === "number");
+      } else if (docType === "bl_awb") {
+        maybe((v) => (d.billOfLading.type = v), extracted.blType, extracted.blType === "B/L" || extracted.blType === "AWB");
+        maybe((v) => (d.billOfLading.number = v), extracted.blNumber);
+        maybe((v) => (d.billOfLading.carrier = v), extracted.carrier);
+      } else if (docType === "coo") {
+        d.certificateOfOrigin.provided = true; filled.push(true);
+      } else if (docType === "permit" && d.permitsOrCertificates) {
+        d.permitsOrCertificates.provided = true; filled.push(true);
+      } else {
+        maybe((v) => (d.po.poNumber = v), extracted.poNumber);
+        maybe((v) => (d.po.buyer = v), extracted.buyer);
+        maybe((v) => (d.invoice.invoiceNo = v), extracted.invoiceNo);
+        maybe((v) => (d.invoice.items[0].qty = v), extracted.qty, typeof extracted.qty === "number");
+        maybe((v) => (d.packingList.items[0].qty = v), extracted.qty, typeof extracted.qty === "number");
+        maybe((v) => (d.incoterm = v), extracted.incoterm, !!INCOTERM_EXPECTED_RESPONSIBILITY[extracted.incoterm]);
+        maybe((v) => (d.deadline = v), extracted.deadline);
+      }
+      return d;
+    });
+    return filled;
+  }
+
+  function createShipment(partial) {
+    const id = nextShipmentId(shipments);
+    const s = { ...partial, id };
+    setShipments((prev) => [...prev, s]);
+    openDetail(id);
+  }
+
+  return (
+    <div className="app">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+        :root {
+          --bg:#EEF3F6; --panel:#FFFFFF; --panel-2:#E4ECF1; --paper:#FFFFFF; --ink:#1D3557;
+          --text:#1D3557; --text-dim:#5A7080; --line:#C7D3DB;
+          --red:#C1502E; --amber:#C97B2E; --green:#2A9D8F;
+          --mono:'IBM Plex Mono', monospace; --display:'Oswald', sans-serif; --body:'Inter', sans-serif;
+        }
+        * { box-sizing: border-box; }
+        .app { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100%; padding: 22px; }
+        .app :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { .app * { transition: none !important; animation: none !important; } }
+
+        .topBar { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 6px; flex-wrap: wrap; gap: 10px; }
+        .brand .eyebrow { color: var(--amber); }
+        .brandTitle { font-family: var(--display); font-size: 28px; letter-spacing: 0.03em; margin: 2px 0; text-transform: uppercase; }
+        .brandSub { color: var(--text-dim); font-size: 13px; }
+        .disclaimerBar { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 8px 12px; font-size: 12px; color: var(--text-dim); display:flex; gap:8px; align-items:flex-start; margin: 14px 0 22px; }
+        .disclaimerBar b { color: var(--amber); font-family: var(--mono); }
+
+        .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+        .mono { font-family: var(--mono); }
+        .strong { font-weight: 600; }
+        .dim { color: var(--text-dim); }
+        .small { font-size: 12px; }
+
+        .kpiRow { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+        .kpiCard { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+        .kpiLabel { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+        .kpiValue { font-family: var(--mono); font-size: 30px; font-weight: 700; margin: 4px 0; }
+        .kpiSub { font-size: 12px; color: var(--text-dim); }
+
+        .toolbar { display:flex; gap: 10px; align-items:center; margin-bottom: 14px; flex-wrap: wrap; }
+        .searchBox { display:flex; align-items:center; gap: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; flex: 1; min-width: 200px; }
+        .searchBox input { background: transparent; border: none; color: var(--text); outline: none; width: 100%; font-family: var(--body); }
+        select, input, textarea { background: var(--panel); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 7px 10px; font-family: var(--body); font-size: 13px; }
+        textarea { width: 100%; min-height: 70px; margin-top: 8px; resize: vertical; }
+
+        .btnPrimary { background: var(--amber); color: #1B1300; border: none; border-radius: 6px; padding: 9px 14px; font-weight: 600; font-size: 13px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+        .btnPrimary:hover { filter: brightness(1.08); }
+        .btnGhost { background: transparent; border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 8px 12px; font-size: 13px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+        .btnGhost:hover { border-color: var(--amber); color: var(--amber); }
+
+        .tableWrap { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 720px; }
+        th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); padding: 12px 14px; border-bottom: 1px solid var(--line); }
+        td { padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+        .rowClick { cursor: pointer; }
+        .rowClick:hover { background: var(--panel-2); }
+        .emptyState { padding: 30px; text-align:center; color: var(--text-dim); }
+
+        .badge { display:inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; font-size: 11px; }
+        .badgeGreen { border-color: var(--green); color: var(--green); }
+        .badgeRed { border-color: var(--red); color: var(--red); }
+        .badgeAmber { border-color: var(--amber); color: var(--amber); }
+        .badgeMuted { border-color: var(--line); color: var(--text-dim); }
+
+        .progressTrack { background: var(--line); border-radius: 999px; height: 6px; overflow: hidden; }
+        .progressFill { height: 100%; border-radius: 999px; }
+
+        .stamp { position: relative; border: 3px double; border-radius: 50%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family: var(--display); transform: rotate(-6deg); background: rgba(29,53,87,0.03); }
+        .stampRing { position:absolute; inset: 4px; border: 1px solid; border-radius: 50%; opacity: 0.5; }
+
+        .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+        .panelHead { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 10px; gap: 10px; }
+        .panelTitle { font-family: var(--display); font-size: 15px; margin: 2px 0 0; display:flex; align-items:center; gap: 7px; text-transform: uppercase; letter-spacing: 0.02em; }
+
+        .grid8 { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 4px; }
+        .grid8 .panel { margin-bottom: 0; }
+        @media (max-width: 980px) { .grid8 { grid-template-columns: repeat(2, 1fr); } .kpiRow { grid-template-columns: repeat(2,1fr); } }
+        @media (max-width: 600px) { .grid8 { grid-template-columns: 1fr; } .kpiRow { grid-template-columns: 1fr; } }
+
+        .detailHeader { display:flex; gap: 18px; align-items:flex-start; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+        .metaRow { display:flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim); align-items:center; margin-top: 4px; }
+        .metaRow span { display:inline-flex; align-items:center; gap: 5px; }
+        .urgentNote { margin-top: 10px; background: rgba(193,80,46,0.08); border: 1px solid var(--red); color: #7A3218; padding: 8px 10px; border-radius: 6px; font-size: 13px; display:flex; gap:8px; align-items:flex-start; }
+
+        .checkRow { display:flex; align-items:center; gap: 8px; padding: 4px 0; font-size: 13px; }
+        .missingSummary { display:flex; align-items:center; gap: 7px; font-weight: 600; font-size: 14px; padding: 6px 0 10px; }
+        .missingSummaryBad { color: var(--red); }
+        .missingSummaryOk { color: var(--green); }
+        .docDetails { margin-top: 8px; font-size: 12px; }
+        .docDetails summary { cursor: pointer; color: var(--text-dim); }
+        .docDetails .checkRow { padding-left: 2px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); display:inline-block; }
+        .okLine { display:flex; align-items:center; gap: 8px; color: var(--green); font-size: 13px; }
+
+        .findingCard { border-left: 3px solid var(--amber); padding: 6px 10px; margin-bottom: 10px; background: var(--panel-2); border-radius: 4px; }
+        .findingHead { font-size: 13px; font-weight: 600; margin-bottom: 4px; display:flex; gap:6px; align-items:flex-start; }
+
+        .altGrid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+        @media (max-width: 900px) { .altGrid { grid-template-columns: 1fr; } }
+        .altCard { border: 1px solid var(--line); border-radius: 8px; padding: 14px; cursor: pointer; position: relative; background: var(--panel-2); }
+        .altCard:hover { border-color: var(--amber); }
+        .altCardActive { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber) inset; }
+        .recTag { position:absolute; top: -9px; right: 10px; background: var(--amber); color: #1B1300; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.04em; }
+        .altMetrics { display:grid; grid-template-columns: repeat(3,1fr); gap: 6px; font-size: 12px; }
+        .decisionActions { display:flex; gap: 8px; flex-wrap: wrap; }
+
+        .whatIfGrid { display:grid; grid-template-columns: 1.1fr 1fr; gap: 18px; }
+        @media (max-width: 900px) { .whatIfGrid { grid-template-columns: 1fr; } }
+        .whatIfForm { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .whatIfForm label { display:flex; flex-direction:column; gap:4px; font-size: 12px; color: var(--text-dim); }
+        .checkboxLabel { flex-direction: row !important; align-items:center; gap: 8px !important; grid-column: span 2; }
+        .whatIfCompare { display:flex; gap: 10px; }
+        .compareCol { flex:1; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+        .compareColHi { border-color: var(--amber); }
+        .compareStat { display:flex; justify-content:space-between; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+        .highlightVal { color: var(--amber); }
+
+        .tagWrap { display:flex; gap: 6px; flex-wrap: wrap; }
+        .tag { background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--text-dim); }
+
+        .assumptionList { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-dim); display:flex; flex-direction:column; gap: 6px; }
+
+        .formGrid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .formGrid label { display:flex; flex-direction:column; gap:4px; font-size: 12px; color: var(--text-dim); }
+        @media (max-width: 800px) { .formGrid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 520px) { .formGrid { grid-template-columns: 1fr; } }
+
+        .uploadBox { display:flex; align-items:center; gap: 12px; border: 1px dashed var(--line); border-radius: 8px; padding: 16px; cursor: pointer; background: var(--panel-2); }
+        .uploadBox:hover { border-color: var(--amber); }
+        .uploadBoxCompact { padding: 9px 14px; flex: 1; }
+        .ocrUpdateRow { display:flex; gap: 10px; align-items:stretch; flex-wrap: wrap; }
+        .ocrUpdateRow select { min-width: 190px; }
+        .ocrBanner { margin-top: 10px; border-radius: 6px; padding: 8px 10px; font-size: 12px; display:flex; gap:8px; align-items:flex-start; }
+        .ocrBannerBusy { background: var(--panel-2); color: var(--text-dim); }
+        .ocrBannerOk { background: rgba(42,157,143,0.10); color: #14524A; border: 1px solid var(--green); }
+        .ocrBannerErr { background: rgba(193,80,46,0.08); color: #7A3218; border: 1px solid var(--red); }
+        .ocrPreviewImg { display:block; max-width: 220px; max-height: 160px; margin-top: 10px; border-radius: 6px; border: 1px solid var(--line); object-fit: contain; background: var(--panel-2); }
+        .ocrPreviewPdf { display:flex; gap:6px; align-items:center; margin-top: 8px; font-size: 12px; color: var(--text-dim); }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
+
+      <div className="topBar">
+        <div className="brand">
+          <div className="eyebrow">Export Documentation & Customs Readiness</div>
+          <div className="brandTitle">TradeReady AI</div>
+          <div className="brandSub">ผู้ช่วย SME ไทยตรวจสอบความพร้อมเอกสารก่อนส่งออก</div>
+        </div>
+      </div>
+      <div className="disclaimerBar">
+        <Info size={14} style={{ marginTop: 1 }} />
+        <div><b>คำเตือน:</b> ผลลัพธ์ทั้งหมดในระบบนี้เป็นคำแนะนำจาก AI เท่านั้น ไม่ถือเป็นการตัดสินใจทางกฎหมายหรือทางศุลกากรที่เป็นทางการ ผู้ใช้งานเป็นผู้ตัดสินใจสุดท้ายเสมอ</div>
+      </div>
+
+      {view === "list" && (
+        <Overview
+          shipments={shipments} analyses={analyses} onOpen={openDetail} onNew={() => setView("new")}
+          search={search} setSearch={setSearch} riskFilter={riskFilter} setRiskFilter={setRiskFilter}
+          scenarioFilter={scenarioFilter} setScenarioFilter={setScenarioFilter}
+        />
+      )}
+
+      {view === "detail" && selectedShipment && (
+        <DetailView
+          shipment={selectedShipment} analysis={selectedAnalysis} onBack={() => setView("list")}
+          decision={decisions[selectedId] || { chosenId: null, status: "pending", note: "" }}
+          onSelectAlt={selectAlt} onDecisionAction={decisionAction}
+          whatIfDraft={whatIfDraft} onWhatIfChange={whatIfChange} onApplyWhatIf={applyWhatIf} onResetWhatIf={resetWhatIf}
+          onMergeExtracted={mergeExtractedIntoWhatIf}
+        />
+      )}
+
+      {view === "new" && <NewShipmentForm onCancel={() => setView("list")} onCreate={createShipment} />}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>
